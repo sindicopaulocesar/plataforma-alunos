@@ -103,6 +103,7 @@
         if (r.startsWith('ERRO:') || !r.includes('|')) throw new Error(r.replace('ERRO:', '') || 'SEM_CODIGO');
         const [codigo, resta] = r.split('|'); return { codigo, resta: +resta };
       },
+      async salvarTurma(id, campos) { ok(await sb.from('turmas').update(campos).eq('id', id)); },
       async salvarPresencas(encontro_id, mapa) {
         const linhas = Object.entries(mapa).filter(([, s]) => s).map(([aluno_id, status]) => ({ encontro_id, aluno_id, status }));
         const limpar = Object.entries(mapa).filter(([, s]) => !s).map(([a]) => a);
@@ -162,7 +163,7 @@
     const meia = (a, b) => Math.round((a + rnd() * (b - a)) * 2) / 2;
 
     const turmas = [
-      { id: 'rj-2027', cidade: 'Rio de Janeiro', parceiro: 'Centrimóveis', nome: 'Turma Rio de Janeiro 2027', inicio: '2027-02-24', formatura: '2027-06-15', horario: 'Quartas e quintas, 18h30 às 22h', ativa: true },
+      { id: 'rj-2027', cidade: 'Rio de Janeiro', parceiro: 'Centrimóveis', nome: 'Turma Rio de Janeiro 2027', inicio: '2027-02-24', formatura: '2027-06-15', horario: 'Quartas e quintas, 18h30 às 22h', local: 'A confirmar (exemplo: Av. Rio Branco, 100, Centro, Rio de Janeiro)', ativa: true },
       { id: 'sp-2027', cidade: 'São Paulo', parceiro: 'Condo Hub', nome: 'Turma São Paulo 2027', inicio: null, formatura: null, horario: null, ativa: true },
       { id: 'cwb-2027', cidade: 'Curitiba', parceiro: 'A definir', nome: 'Turma Curitiba 2027', inicio: null, formatura: null, horario: null, ativa: true },
       { id: 'poa-2027', cidade: 'Porto Alegre', parceiro: 'A definir', nome: 'Turma Porto Alegre 2027', inicio: null, formatura: null, horario: null, ativa: true }
@@ -260,6 +261,7 @@
         if (!e) throw new Error('CODIGO_INVALIDO');
         up(presencas, ['encontro_id', 'aluno_id'], { encontro_id: e.id, aluno_id: eu.id, status: 'P' }); return e.titulo;
       },
+      async salvarTurma(id, campos) { Object.assign(D.turmas.find((x) => x.id === id) || {}, campos); },
       async gerarCodigo(encontro_id) { const codigo = novaChave(); up(D.codigos, ['encontro_id'], { encontro_id, codigo }); return codigo; },
       async codigoAtual(encontro_id) { const c = D.codigos.find((y) => y.encontro_id === encontro_id); if (!c) throw new Error('SEM_CODIGO'); const ms = Date.now(), slot = Math.floor(ms / 40000); return { codigo: codDemo(c.codigo, slot), resta: Math.ceil(((slot + 1) * 40000 - ms) / 1000) }; },
       async salvarPresencas(encontro_id, mapa) { Object.entries(mapa).forEach(([aluno_id, status]) => { const i = presencas.findIndex((p) => p.encontro_id === encontro_id && p.aluno_id === aluno_id); if (i >= 0) presencas.splice(i, 1); if (status) presencas.push({ encontro_id, aluno_id, status }); }); },

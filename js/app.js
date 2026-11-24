@@ -143,6 +143,7 @@
       </div>
       ${prox ? `<div class="date"><b class="num">${dias(prox.data)}</b><span>${dias(prox.data) === 1 ? 'dia' : 'dias'}</span></div>` : ''}
     </section>
+    <div class="card presencial"><b>Curso presencial</b><span>${esc(t.horario || 'Quartas e quintas, 18h30 às 22h')}</span><span>Local: ${esc(t.local || 'a confirmar')}</span></div>
     ${presencaHoje()}
     <div class="grid g3">
       <div class="card stat"><span class="eyebrow">Progresso no curso</span><span class="big num">${Math.round(r.progresso * 100)}%</span>${bar(r.progresso)}<span class="small muted">${r.concl.size} de ${D.aulas.length} aulas concluídas</span></div>
@@ -231,7 +232,7 @@
   V.agenda = () => {
     const t = turma(), encs = encontrosT();
     const pres = encs.filter((e) => e.tipo === 'presencial').length, virt = encs.length - pres;
-    return `${demoBar()}<div class="pagehead"><span class="eyebrow">${esc(t.nome)}</span><h1>Agenda do curso</h1><p class="muted">${pres} encontros presenciais${t.horario ? ' (' + esc(t.horario.toLowerCase()) + ')' : ''}${virt ? ` e ${virt} encontros virtuais. Os virtuais também contam na frequência.` : '.'}</p></div>
+    return `${demoBar()}<div class="pagehead"><span class="eyebrow">${esc(t.nome)}</span><h1>Agenda do curso</h1><p class="muted"><b>Curso presencial</b>${t.local ? ' · Local: ' + esc(t.local) : ''}.<br>${pres} encontros presenciais${t.horario ? ' (' + esc(t.horario.toLowerCase()) + ')' : ''}${virt ? ` e ${virt} encontros virtuais. Os virtuais também contam na frequência.` : '.'}</p></div>
     <div class="card">${linhaDoTempo(encs, D.eu.id)}</div>`;
   };
 
@@ -368,9 +369,12 @@
       `1. Acesse ${URL_ALUNO}?turma=${t.id}`,
       `2. No primeiro acesso, digite ${email ? 'este e-mail (' + email + ')' : 'o seu e-mail'} e clique em "Criar minha senha".`,
       '3. Nas próximas vezes, entre com o seu e-mail e a senha que você criou.', '',
+      'CURSO PRESENCIAL',
+      `• Local: ${t.local || 'a confirmar'}`,
+      `• Dias e horário: ${t.horario || 'quartas e quintas, das 18h30 às 22h'}${t.inicio ? ', a partir de ' + t.inicio.split('-').reverse().join('/') : ' (datas a confirmar)'}`, '',
       'COMO O CURSO FUNCIONA',
       '• 80 horas, 6 módulos e 24 aulas, com certificado de extensão emitido por instituição credenciada pelo MEC.',
-      `• Encontros: ${t.horario && t.inicio ? t.horario + ', a partir de ' + t.inicio.split('-').reverse().join('/') : 'datas a confirmar'}. A agenda completa fica na plataforma.`,
+      '• A agenda completa dos encontros fica na plataforma.',
       '• Os materiais de cada aula são liberados uma semana antes do encontro.',
       '• A presença é marcada pelo celular, lendo o QR Code mostrado no encontro.',
       '• As atividades e o Projeto Integrador são enviados pela própria plataforma. Para receber o certificado: média 7,0 e presença mínima de 75%.', '',
@@ -496,6 +500,10 @@
     const encs = encontrosT(), tars = tarefasT();
     const ee = encs.find((x) => x.id === editEnc) || {}, et = tars.find((x) => x.id === editTar) || {};
     return `${cabecalho('Coordenação', 'Agenda e tarefas', 'Ajuste as datas dos encontros (por exemplo, os virtuais) e as avaliações que compõem a nota.')}
+    <div class="card"><h2>Curso presencial · local e horário</h2><p class="small muted">Aparece para o aluno na tela Início, na Agenda e no e-mail de boas-vindas.</p>
+      <form class="cform" id="turmaForm"><div class="field full"><label for="tLocal">Local dos encontros (endereço completo)</label><input id="tLocal" value="${esc(turma().local || '')}" placeholder="Ex.: Av. Rio Branco, 100, sala 501, Centro, Rio de Janeiro"></div>
+      <div class="field"><label for="tHorario">Dias e horário</label><input id="tHorario" value="${esc(turma().horario || 'Quartas e quintas, 18h30 às 22h')}"></div>
+      <div><button class="btn btn-primary small" type="submit">Salvar local e horário</button></div></form></div>
     <div class="card"><h2>${ee.id ? 'Editar encontro' : 'Novo encontro'}</h2>
       <form class="cform" id="encForm" data-id="${ee.id || ''}">
         <div class="field"><label for="eTit">Título</label><input id="eTit" required value="${esc(ee.titulo || '')}" placeholder="Ex.: Encontro virtual 2"></div>
@@ -622,6 +630,7 @@
     const tp = $('#todosP'); if (tp) tp.onclick = () => { Object.keys(chamada).forEach((k) => { chamada[k] = 'P'; }); render(); };
     const rF = $('#restoF'); if (rF) rF.onclick = () => { Object.keys(chamada).forEach((k) => { if (!chamada[k]) chamada[k] = 'F'; }); render(); };
     const prf = $('#presForm'); if (prf) prf.onsubmit = async (ev) => { ev.preventDefault(); const c = $('#presCod').value.replace(/\D/g, ''); if (c.length !== 4) { toast('Digite os 4 números do código.', true); return; } if (await tentar(() => API.marcarPresenca(c))) atualizar('Presença marcada. Bom encontro!'); };
+    const tuf = $('#turmaForm'); if (tuf) tuf.onsubmit = async (ev) => { ev.preventDefault(); if (await tentar(() => API.salvarTurma(TURMA, { local: $('#tLocal').value.trim() || null, horario: $('#tHorario').value.trim() || null }))) atualizar('Local e horário salvos.'); };
     const nc = $('#novoCod'); if (nc) nc.onclick = async () => { if (await tentar(() => API.gerarCodigo(encSel))) { await atualizar('Código ativado.'); abrirTelao(encSel); } };
     const tl = $('#telao'); if (tl) tl.onclick = () => abrirTelao(encSel);
     const ac = $('#atuCh'); if (ac) ac.onclick = () => { chamada = null; atualizar('Lista atualizada.'); };
