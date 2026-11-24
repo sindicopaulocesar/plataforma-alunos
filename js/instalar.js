@@ -22,7 +22,7 @@
     const m = document.createElement('div'); m.className = 'app-ios';
     m.innerHTML = `<div class="cx" role="dialog" aria-label="Instalar no iPhone"><h3>Instalar no iPhone</h3><ol>
       <li>Abra esta página no <b>Safari</b>.</li>
-      <li>Toque no botão <b>Compartilhar</b> (o quadrado com a seta para cima ⬆️), na barra de baixo.</li>
+      <li>Toque nos <b>três pontinhos (•••)</b>, no canto de baixo à direita, e depois em <b>Compartilhar</b>.<br><small style="color:#5B6461">Em iPhones mais antigos, toque direto no botão <b>Compartilhar</b> (o quadrado com a seta para cima ⬆️).</small></li>
       <li>Role a lista e toque em <b>Adicionar à Tela de Início</b>.</li>
       <li>Toque em <b>Adicionar</b>, no canto de cima.</li></ol>
       <p style="margin:0 0 16px;color:#5B6461">O ícone <b>FS</b> aparece na tela do celular e abre a área do aluno em tela cheia.</p>
