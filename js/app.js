@@ -328,7 +328,7 @@
   }
 
   // ---------- telas do professor ----------
-  const seletorTurma = () => `<div class="field" style="min-width:220px"><label for="selTurma" class="small">Turma</label><select id="selTurma" class="sel">${D.turmas.map((t) => `<option value="${esc(t.id)}" ${t.id === TURMA ? 'selected' : ''}>${esc(t.nome)} · ${esc(t.parceiro)}</option>`).join('')}</select></div>`;
+  const seletorTurma = () => `<div class="field" style="min-width:220px"><label for="selTurma" class="small">Turma</label><select id="selTurma" class="sel">${D.turmas.map((t) => `<option value="${esc(t.id)}" ${t.id === TURMA ? 'selected' : ''}>${esc(t.nome)}${parceiroDe(t) ? ' · ' + esc(parceiroDe(t)) : ''}</option>`).join('')}</select></div>`;
   const cabecalho = (eyebrow, titulo, texto, extra) => `${demoBar()}<div class="toolbar" style="align-items:flex-end"><div class="pagehead"><span class="eyebrow">${eyebrow}</span><h1>${titulo}</h1>${texto ? `<p class="muted">${texto}</p>` : ''}</div>${extra === false ? '' : seletorTurma()}</div>`;
 
   V['p-painel'] = () => {
@@ -405,7 +405,8 @@
 
   let encSel = null, chamada = null;
   const codigoBloco = (e) => {
-    if (e.tipo !== 'presencial' || !e.data) return '';
+    if (e.tipo !== 'presencial') return '';
+    if (!e.data) return `<div class="codigo-noite"><div><b>Código da noite</b><p class="small muted">Este encontro ainda está sem data. O código só funciona no dia do encontro: coloque a data em <a href="#p-agenda">Agenda e tarefas</a> e volte aqui.</p></div></div>`;
     const c = (D.codigos || []).find((x) => x.encontro_id === e.id), hoje = isoHoje();
     const quando = e.data === hoje ? 'hoje, entre 17h30 e 23h30' : `só no dia ${fd(e.data)}, entre 17h30 e 23h30`;
     return `<div class="codigo-noite"><div><b>Código da noite</b><p class="small muted">O aluno digita este código na tela Início da plataforma. Vale ${quando}. Depois clique em "Atualizar lista" para ver quem marcou.</p></div>
