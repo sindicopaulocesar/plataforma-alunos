@@ -7,7 +7,8 @@
   function nomeSeguro(nome) {
     return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w.\-]+/g, '_').slice(-80);
   }
-  function novoCodigo() { const a = new Uint32Array(1); crypto.getRandomValues(a); return String(a[0] % 10000).padStart(4, '0'); }
+  function novaChave() { const a = new Uint8Array(12); crypto.getRandomValues(a); return [...a].map((b) => b.toString(16).padStart(2, '0')).join(''); }
+  function codDemo(chave, slot) { let h = 2166136261; for (const ch of chave + ':' + slot) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return String(h % 10000).padStart(4, '0'); }
   function erroAmigavel(e) {
     const m = (e && (e.message || e.error_description || String(e))) || 'Erro desconhecido';
     if (/EMAIL_NAO_MATRICULADO|Database error saving new user/i.test(m)) return 'Este e-mail não está na lista de matriculados. Fale com a coordenação.';
@@ -18,7 +19,8 @@
     if (/Payload too large|exceeded the maximum/i.test(m)) return 'O arquivo é grande demais.';
     if (/SEM_LOGIN/.test(m)) return 'Sua sessão expirou. Clique em Sair e entre de novo.';
     if (/row-level security|SEM_PROFESSOR/i.test(m)) return 'Você não está mais conectado como professor neste navegador (a sessão expirou ou alguém entrou como aluno em outra aba). Clique em Sair, entre de novo como professor e tente outra vez.';
-    if (/CODIGO_INVALIDO/.test(m)) return 'Código não confere. Confira os 4 números mostrados no encontro de hoje.';
+    if (/SEM_CODIGO/.test(m)) return 'Este encontro ainda não tem código. Clique em "Gerar código da noite".';
+    if (/CODIGO_INVALIDO/.test(m)) return 'Código não confere ou já expirou. Digite os 4 números que estão no telão agora.';
     if (/FORA_DO_HORARIO/.test(m)) return 'O código só vale durante o encontro, entre 17h30 e 23h30.';
     if (/MUITAS_TENTATIVAS/.test(m)) return 'Muitas tentativas hoje. Peça ao professor para marcar a sua presença.';
     if (/Failed to fetch|NetworkError/i.test(m)) return 'Sem conexão com a internet. Tente de novo.';
@@ -91,9 +93,14 @@
       },
       // ---- professor ----
       async gerarCodigo(encontro_id) {
-        const codigo = novoCodigo();
+        const codigo = novaChave();
         ok(await sb.from('codigos_presenca').upsert({ encontro_id, codigo, criado_em: new Date().toISOString() }));
         return codigo;
+      },
+      async codigoAtual(encontro_id) {
+        const r = String(ok(await sb.rpc('codigo_atual', { p_encontro: encontro_id })) || '');
+        if (r.startsWith('ERRO:') || !r.includes('|')) throw new Error(r.replace('ERRO:', '') || 'SEM_CODIGO');
+        const [codigo, resta] = r.split('|'); return { codigo, resta: +resta };
       },
       async salvarPresencas(encontro_id, mapa) {
         const linhas = Object.entries(mapa).filter(([, s]) => s).map(([aluno_id, status]) => ({ encontro_id, aluno_id, status }));
@@ -247,11 +254,13 @@
       async salvarPerfil(p) { Object.assign(eu, p); },
       async enviarMensagem(texto) { mensagens.unshift({ id: novoId(), aluno_id: eu.id, texto, lida: false, criado_em: new Date().toISOString() }); },
       async marcarPresenca(codigo) {
-        const e = D.encontros.find((x) => x.turma_id === eu.turma_id && x.data === iso(HOJE) && (D.codigos.find((c) => c.encontro_id === x.id) || {}).codigo === String(codigo).trim());
+        const slot = Math.floor(Date.now() / 40000), c0 = String(codigo).trim();
+        const e = D.encontros.find((x) => { const c = D.codigos.find((y) => y.encontro_id === x.id); return x.turma_id === eu.turma_id && x.data === iso(HOJE) && c && [0, 1, 2].some((k) => codDemo(c.codigo, slot - k) === c0); });
         if (!e) throw new Error('CODIGO_INVALIDO');
         up(presencas, ['encontro_id', 'aluno_id'], { encontro_id: e.id, aluno_id: eu.id, status: 'P' }); return e.titulo;
       },
-      async gerarCodigo(encontro_id) { const codigo = novoCodigo(); up(D.codigos, ['encontro_id'], { encontro_id, codigo }); return codigo; },
+      async gerarCodigo(encontro_id) { const codigo = novaChave(); up(D.codigos, ['encontro_id'], { encontro_id, codigo }); return codigo; },
+      async codigoAtual(encontro_id) { const c = D.codigos.find((y) => y.encontro_id === encontro_id); if (!c) throw new Error('SEM_CODIGO'); const ms = Date.now(), slot = Math.floor(ms / 40000); return { codigo: codDemo(c.codigo, slot), resta: Math.ceil(((slot + 1) * 40000 - ms) / 1000) }; },
       async salvarPresencas(encontro_id, mapa) { Object.entries(mapa).forEach(([aluno_id, status]) => { const i = presencas.findIndex((p) => p.encontro_id === encontro_id && p.aluno_id === aluno_id); if (i >= 0) presencas.splice(i, 1); if (status) presencas.push({ encontro_id, aluno_id, status }); }); },
       async salvarNota(tarefa_id, aluno_id, nota, comentario) { const i = notas.findIndex((n) => n.tarefa_id === tarefa_id && n.aluno_id === aluno_id); if (i >= 0) notas.splice(i, 1); if (nota !== null || comentario) notas.push({ tarefa_id, aluno_id, nota, comentario, lancada_em: new Date().toISOString() }); },
       async addMaterial(m) { materiais.push({ id: novoId(), aula: m.aula, turma_id: m.turma_id, titulo: m.titulo, caminho: m.file ? m.file.name : null, link: m.link || null, liberado_em: m.liberado_em }); },

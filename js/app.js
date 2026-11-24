@@ -409,8 +409,8 @@
     if (!e.data) return `<div class="codigo-noite"><div><b>Código da noite</b><p class="small muted">Este encontro ainda está sem data. O código só funciona no dia do encontro: coloque a data em <a href="#p-agenda">Agenda e tarefas</a> e volte aqui.</p></div></div>`;
     const c = (D.codigos || []).find((x) => x.encontro_id === e.id), hoje = isoHoje();
     const quando = e.data === hoje ? 'hoje, entre 17h30 e 23h30' : `só no dia ${fd(e.data)}, entre 17h30 e 23h30`;
-    return `<div class="codigo-noite"><div><b>Código da noite</b><p class="small muted">O aluno digita este código na tela Início da plataforma. Vale ${quando}. Depois clique em "Atualizar lista" para ver quem marcou.</p></div>
-      ${c ? `<span class="codigo-num num">${esc(c.codigo)}</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary small" type="button" id="telao">Mostrar no telão</button><button class="btn btn-ghost small" type="button" id="novoCod">Gerar outro</button><button class="btn btn-ghost small" type="button" id="atuCh">Atualizar lista</button></div>`
+    return `<div class="codigo-noite"><div><b>Código da noite</b><p class="small muted">${c ? `Ativado. No telão aparecem um QR Code e um código de 4 números que <b>mudam a cada 40 segundos</b>, então o print que circular no WhatsApp perde a validade. O aluno aponta a câmera do celular para o QR ou digita o código na tela Início. Vale ${quando}.` : `Gere o código e mostre no telão: o aluno lê o QR Code com o celular ou digita os 4 números. Vale ${quando}.`}</p></div>
+      ${c ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary small" type="button" id="telao">Mostrar QR Code no telão</button><button class="btn btn-ghost small" type="button" id="atuCh">Atualizar lista</button></div>`
         : `<button class="btn btn-primary small" type="button" id="novoCod">Gerar código da noite</button>`}</div>`;
   };
   V['p-presenca'] = () => {
@@ -598,8 +598,8 @@
     const tp = $('#todosP'); if (tp) tp.onclick = () => { Object.keys(chamada).forEach((k) => { chamada[k] = 'P'; }); render(); };
     const rF = $('#restoF'); if (rF) rF.onclick = () => { Object.keys(chamada).forEach((k) => { if (!chamada[k]) chamada[k] = 'F'; }); render(); };
     const prf = $('#presForm'); if (prf) prf.onsubmit = async (ev) => { ev.preventDefault(); const c = $('#presCod').value.replace(/\D/g, ''); if (c.length !== 4) { toast('Digite os 4 números do código.', true); return; } if (await tentar(() => API.marcarPresenca(c))) atualizar('Presença marcada. Bom encontro!'); };
-    const nc = $('#novoCod'); if (nc) nc.onclick = async () => { const tem = (D.codigos || []).some((x) => x.encontro_id === encSel); if (tem && !confirm('Gerar um código novo? O código atual deixa de valer.')) return; if (await tentar(() => API.gerarCodigo(encSel))) atualizar('Código gerado.'); };
-    const tl = $('#telao'); if (tl) tl.onclick = () => { const c = (D.codigos || []).find((x) => x.encontro_id === encSel); if (!c) return; const d = document.createElement('div'); d.className = 'telao'; d.innerHTML = `<span class="small">Presença de hoje · digite na plataforma</span><b class="num">${esc(c.codigo)}</b><span class="small">Toque para fechar</span>`; d.onclick = () => { d.remove(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }; document.body.appendChild(d); if (d.requestFullscreen) d.requestFullscreen().catch(() => {}); };
+    const nc = $('#novoCod'); if (nc) nc.onclick = async () => { if (await tentar(() => API.gerarCodigo(encSel))) { await atualizar('Código ativado.'); abrirTelao(encSel); } };
+    const tl = $('#telao'); if (tl) tl.onclick = () => abrirTelao(encSel);
     const ac = $('#atuCh'); if (ac) ac.onclick = () => { chamada = null; atualizar('Lista atualizada.'); };
     const sc = $('#salvarCh'); if (sc) sc.onclick = async () => { if (await tentar(() => API.salvarPresencas(encSel, chamada))) { chamada = null; atualizar('Chamada salva.'); } };
     const ta = $('#tar'); if (ta) ta.onchange = () => { tarSel = +ta.value; render(); };
@@ -727,9 +727,44 @@
   }
   async function sair() { await API.sair(); D = null; history.replaceState(null, '', location.pathname); telaEntrada(); }
 
+  function carregarQR() {
+    if (window.qrcode) return Promise.resolve();
+    return new Promise((ok, erro) => { const sc = document.createElement('script'); sc.src = 'js/qrcode.js?v=1'; sc.onload = ok; sc.onerror = erro; document.head.appendChild(sc); });
+  }
+  function abrirTelao(encontroId) {
+    const d = document.createElement('div'); d.className = 'telao';
+    d.innerHTML = `<span class="tl-top">Presença de hoje · aponte a câmera do celular</span><div class="tl-qr" id="tlQr"></div><b class="num" id="tlCod">····</b><span class="tl-sub">ou digite o código na tela Início da plataforma · muda em <span id="tlResta">40</span>s</span><button type="button" class="tl-fechar">Fechar</button>`;
+    document.body.appendChild(d); if (d.requestFullscreen) d.requestFullscreen().catch(() => {});
+    let vivo = true, t1 = null, t2 = null, resta = 40;
+    const fechar = () => { vivo = false; clearTimeout(t1); clearInterval(t2); d.remove(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); document.removeEventListener('keydown', esc1); };
+    const esc1 = (ev) => { if (ev.key === 'Escape') fechar(); };
+    document.addEventListener('keydown', esc1); d.querySelector('.tl-fechar').onclick = fechar;
+    t2 = setInterval(() => { resta = Math.max(0, resta - 1); const r = d.querySelector('#tlResta'); if (r) r.textContent = resta; }, 1000);
+    const ciclo = async () => {
+      if (!vivo) return;
+      try {
+        const [{ codigo, resta: r }] = await Promise.all([API.codigoAtual(encontroId), carregarQR()]);
+        if (!vivo) return;
+        const url = `${location.origin}${location.pathname}#presenca=${codigo}`;
+        const qr = window.qrcode(0, 'M'); qr.addData(url); qr.make();
+        d.querySelector('#tlQr').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+        d.querySelector('#tlCod').textContent = codigo; resta = r; d.querySelector('#tlResta').textContent = r;
+        t1 = setTimeout(ciclo, (r + 1) * 1000);
+      } catch (e) { console.error(e); toast(API.erroAmigavel(e), true); t1 = setTimeout(ciclo, 5000); }
+    };
+    ciclo();
+  }
+  async function presencaPendente() {
+    let c = null; try { c = sessionStorage.getItem('presPend'); sessionStorage.removeItem('presPend'); } catch (e) { /* sem armazenamento */ }
+    if (!c || !D || ehProf()) return;
+    if (await tentar(() => API.marcarPresenca(c))) { location.hash = 'inicio'; await atualizar('Presença marcada pelo QR Code. Bom encontro!'); }
+  }
+  { const m = location.hash.match(/^#presenca=(\d{4})$/); if (m) { try { sessionStorage.setItem('presPend', m[1]); } catch (e) { /* ok */ } history.replaceState(null, '', location.pathname + location.search); } }
+
   async function iniciar() {
     try { await recarregar(); } catch (e) { console.error(e); await API.sair(); telaEntrada(); $('#lgErro').textContent = API.erroAmigavel(e); return; }
     $('#login').hidden = true; $('#app').hidden = false; render();
+    presencaPendente();
   }
 
   window.addEventListener('hashchange', () => { if (D) { render(); window.scrollTo(0, 0); } });
