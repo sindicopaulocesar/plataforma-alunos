@@ -7,6 +7,7 @@
   function nomeSeguro(nome) {
     return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w.\-]+/g, '_').slice(-80);
   }
+  function novoCodigo() { const a = new Uint32Array(1); crypto.getRandomValues(a); return String(a[0] % 10000).padStart(4, '0'); }
   function erroAmigavel(e) {
     const m = (e && (e.message || e.error_description || String(e))) || 'Erro desconhecido';
     if (/EMAIL_NAO_MATRICULADO|Database error saving new user/i.test(m)) return 'Este e-mail não está na lista de matriculados. Fale com a coordenação.';
@@ -15,7 +16,11 @@
     if (/Password should be at least/i.test(m) || /SENHA_CURTA/.test(m)) return 'A senha precisa ter pelo menos 6 caracteres.';
     if (/Email not confirmed/i.test(m)) return 'O e-mail ainda não foi confirmado. Avise a coordenação.';
     if (/Payload too large|exceeded the maximum/i.test(m)) return 'O arquivo é grande demais.';
+    if (/SEM_LOGIN/.test(m)) return 'Sua sessão expirou. Clique em Sair e entre de novo.';
     if (/row-level security|SEM_PROFESSOR/i.test(m)) return 'Você não está mais conectado como professor neste navegador (a sessão expirou ou alguém entrou como aluno em outra aba). Clique em Sair, entre de novo como professor e tente outra vez.';
+    if (/CODIGO_INVALIDO/.test(m)) return 'Código não confere. Confira os 4 números mostrados no encontro de hoje.';
+    if (/FORA_DO_HORARIO/.test(m)) return 'O código só vale durante o encontro, entre 17h30 e 23h30.';
+    if (/MUITAS_TENTATIVAS/.test(m)) return 'Muitas tentativas hoje. Peça ao professor para marcar a sua presença.';
     if (/Failed to fetch|NetworkError/i.test(m)) return 'Sem conexão com a internet. Tente de novo.';
     return m;
   }
@@ -57,6 +62,8 @@
             q('perfis').order('nome'), q('matriculas').order('nome'), q('mensagens').order('criado_em', { ascending: false })
           ])).map(ok);
           Object.assign(D, { alunos, matriculas, mensagens });
+          const cod = await q('codigos_presenca');
+          D.codigos = cod.error ? [] : cod.data;
         }
         return D;
       },
@@ -77,7 +84,17 @@
       async salvarPerfil(p) { ok(await sb.from('perfis').update(p).eq('id', uid)); },
       async enviarMensagem(texto) { ok(await sb.from('mensagens').insert({ aluno_id: uid, texto })); },
 
+      async marcarPresenca(codigo) {
+        const r = String(ok(await sb.rpc('marcar_presenca', { p_codigo: String(codigo).trim() })) || '');
+        if (!r.startsWith('OK:')) throw new Error(r.replace('ERRO:', '') || 'CODIGO_INVALIDO');
+        return r.slice(3);
+      },
       // ---- professor ----
+      async gerarCodigo(encontro_id) {
+        const codigo = novoCodigo();
+        ok(await sb.from('codigos_presenca').upsert({ encontro_id, codigo, criado_em: new Date().toISOString() }));
+        return codigo;
+      },
       async salvarPresencas(encontro_id, mapa) {
         const linhas = Object.entries(mapa).filter(([, s]) => s).map(([aluno_id, status]) => ({ encontro_id, aluno_id, status }));
         const limpar = Object.entries(mapa).filter(([, s]) => !s).map(([a]) => a);
@@ -195,7 +212,7 @@
     ];
     const mensagens = [{ id: novoId(), aluno_id: 'aluno-4', texto: 'Professor, posso usar o condomínio onde moro no Projeto Integrador?', lida: false, criado_em: '2027-04-13T14:20:00Z' }];
     const certificados = [];
-    const D = { turmas, modulos: C.modulos, aulas: C.aulas, encontros, materiais, tarefas, entregas, notas, presencas, concluidas, avisos, certificados, alunos, matriculas, mensagens };
+    const D = { codigos: [], turmas, modulos: C.modulos, aulas: C.aulas, encontros, materiais, tarefas, entregas, notas, presencas, concluidas, avisos, certificados, alunos, matriculas, mensagens };
     let eu = null;
     const espera = () => new Promise((r) => setTimeout(r, 150));
     const visivel = (D2) => {
@@ -229,6 +246,12 @@
       async enviarEntrega(tarefa_id, file) { await espera(); up(entregas, ['tarefa_id', 'aluno_id'], { tarefa_id, aluno_id: eu.id, caminho: 'x', nome_arquivo: file.name, enviado_em: new Date().toISOString() }); },
       async salvarPerfil(p) { Object.assign(eu, p); },
       async enviarMensagem(texto) { mensagens.unshift({ id: novoId(), aluno_id: eu.id, texto, lida: false, criado_em: new Date().toISOString() }); },
+      async marcarPresenca(codigo) {
+        const e = D.encontros.find((x) => x.turma_id === eu.turma_id && x.data === iso(HOJE) && (D.codigos.find((c) => c.encontro_id === x.id) || {}).codigo === String(codigo).trim());
+        if (!e) throw new Error('CODIGO_INVALIDO');
+        up(presencas, ['encontro_id', 'aluno_id'], { encontro_id: e.id, aluno_id: eu.id, status: 'P' }); return e.titulo;
+      },
+      async gerarCodigo(encontro_id) { const codigo = novoCodigo(); up(D.codigos, ['encontro_id'], { encontro_id, codigo }); return codigo; },
       async salvarPresencas(encontro_id, mapa) { Object.entries(mapa).forEach(([aluno_id, status]) => { const i = presencas.findIndex((p) => p.encontro_id === encontro_id && p.aluno_id === aluno_id); if (i >= 0) presencas.splice(i, 1); if (status) presencas.push({ encontro_id, aluno_id, status }); }); },
       async salvarNota(tarefa_id, aluno_id, nota, comentario) { const i = notas.findIndex((n) => n.tarefa_id === tarefa_id && n.aluno_id === aluno_id); if (i >= 0) notas.splice(i, 1); if (nota !== null || comentario) notas.push({ tarefa_id, aluno_id, nota, comentario, lancada_em: new Date().toISOString() }); },
       async addMaterial(m) { materiais.push({ id: novoId(), aula: m.aula, turma_id: m.turma_id, titulo: m.titulo, caminho: m.file ? m.file.name : null, link: m.link || null, liberado_em: m.liberado_em }); },

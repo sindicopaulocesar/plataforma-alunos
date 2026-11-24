@@ -118,6 +118,14 @@
   // ---------- telas do aluno ----------
   const V = {};
 
+  const presencaHoje = () => {
+    const hoje = isoHoje(), e = encontrosT().find((x) => x.data === hoje && x.tipo === 'presencial');
+    if (!e || D.eu.papel === 'professor') return '';
+    const p = D.presencas.find((x) => x.encontro_id === e.id && x.aluno_id === D.eu.id);
+    if (p && (p.status === 'P' || p.status === 'R')) return `<div class="card codigo-noite ok"><div><b>Presença de hoje confirmada</b><p class="small muted">${esc(e.titulo)}. Bom encontro!</p></div></div>`;
+    return `<form class="card codigo-noite" id="presForm"><div><b>Presença de hoje</b><p class="small muted">Digite o código de 4 números que o professor mostrar no encontro.</p></div>
+      <div style="display:flex;gap:8px;align-items:center"><input id="presCod" class="input codigo-in num" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000" aria-label="Código da noite"><button class="btn btn-primary" type="submit">Marcar presença</button></div></form>`;
+  };
   V.inicio = () => {
     const r = resumo(D.eu.id), t = turma(), hoje = isoHoje();
     const prox = encontrosT().find((e) => e.data && e.data >= hoje);
@@ -134,6 +142,7 @@
       </div>
       ${prox ? `<div class="date"><b class="num">${dias(prox.data)}</b><span>${dias(prox.data) === 1 ? 'dia' : 'dias'}</span></div>` : ''}
     </section>
+    ${presencaHoje()}
     <div class="grid g3">
       <div class="card stat"><span class="eyebrow">Progresso no curso</span><span class="big num">${Math.round(r.progresso * 100)}%</span>${bar(r.progresso)}<span class="small muted">${r.concl.size} de ${D.aulas.length} aulas concluídas</span></div>
       <div class="card stat"><span class="eyebrow">Frequência</span><span class="big num">${r.freq == null ? '—' : Math.round(r.freq * 100) + '%'}</span>${bar(r.freq)}<span class="small muted">${r.presentes} de ${r.realizados} encontros realizados · mínimo 75%</span></div>
@@ -395,6 +404,14 @@
   const senhaSugerida = () => 'sindico' + Math.floor(1000 + Math.random() * 9000);
 
   let encSel = null, chamada = null;
+  const codigoBloco = (e) => {
+    if (e.tipo !== 'presencial' || !e.data) return '';
+    const c = (D.codigos || []).find((x) => x.encontro_id === e.id), hoje = isoHoje();
+    const quando = e.data === hoje ? 'hoje, entre 17h30 e 23h30' : `só no dia ${fd(e.data)}, entre 17h30 e 23h30`;
+    return `<div class="codigo-noite"><div><b>Código da noite</b><p class="small muted">O aluno digita este código na tela Início da plataforma. Vale ${quando}. Depois clique em "Atualizar lista" para ver quem marcou.</p></div>
+      ${c ? `<span class="codigo-num num">${esc(c.codigo)}</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary small" type="button" id="telao">Mostrar no telão</button><button class="btn btn-ghost small" type="button" id="novoCod">Gerar outro</button><button class="btn btn-ghost small" type="button" id="atuCh">Atualizar lista</button></div>`
+        : `<button class="btn btn-primary small" type="button" id="novoCod">Gerar código da noite</button>`}</div>`;
+  };
   V['p-presenca'] = () => {
     const encs = encontrosT(), hoje = isoHoje();
     if (!encs.some((e) => e.id === encSel)) { const passados = encs.filter((e) => e.data && e.data <= hoje); encSel = (passados[passados.length - 1] || encs[0] || {}).id; chamada = null; }
@@ -404,6 +421,7 @@
     return `${cabecalho('Coordenação', 'Lista de presença', 'Toque no nome para alternar: presente, falta, reposição e sem registro. Depois clique em Salvar.')}
     ${e ? `<div class="card"><div class="toolbar"><div class="field" style="min-width:240px"><label for="enc" class="small">Encontro</label><select id="enc" class="sel">${encs.map((x) => `<option value="${x.id}" ${x.id === e.id ? 'selected' : ''}>${x.data ? fd(x.data) : 'sem data'} · ${esc(x.titulo)}</option>`).join('')}</select></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${pill(vals.filter((v) => v === 'P' || v === 'R').length + ' presentes', 'ok')}${pill(vals.filter((v) => v === 'F').length + ' faltas', 'bad')}${pill(vals.filter((v) => !v).length + ' sem registro', 'neutral')}</div></div>
+      ${codigoBloco(e)}
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost small" type="button" id="todosP">Marcar todos presentes</button><button class="btn btn-ghost small" type="button" id="restoF">Quem está sem registro ganha falta</button><button class="btn btn-primary small" type="button" id="salvarCh">Salvar chamada</button></div>
       <div class="call">${als.map((a) => { const s = chamada[a.id]; return `<button type="button" class="${s || ''}" data-ch="${esc(a.id)}"><span>${esc(a.nome)}</span><b class="small">${{ P: 'Presente', F: 'Falta', R: 'Reposição' }[s] || '—'}</b></button>`; }).join('') || '<p class="muted">Nenhum aluno na turma ainda.</p>'}</div>
     </div>` : '<div class="card"><p class="muted">Esta turma ainda não tem encontros. Cadastre em Agenda e tarefas.</p></div>'}`;
@@ -578,6 +596,10 @@
     on('[data-ch]', 'click', (e) => { const id = e.currentTarget.dataset.ch, ordem = [null, 'P', 'F', 'R']; chamada[id] = ordem[(ordem.indexOf(chamada[id]) + 1) % 4]; const y = scrollY; render(); scrollTo(0, y); });
     const tp = $('#todosP'); if (tp) tp.onclick = () => { Object.keys(chamada).forEach((k) => { chamada[k] = 'P'; }); render(); };
     const rF = $('#restoF'); if (rF) rF.onclick = () => { Object.keys(chamada).forEach((k) => { if (!chamada[k]) chamada[k] = 'F'; }); render(); };
+    const prf = $('#presForm'); if (prf) prf.onsubmit = async (ev) => { ev.preventDefault(); const c = $('#presCod').value.replace(/\D/g, ''); if (c.length !== 4) { toast('Digite os 4 números do código.', true); return; } if (await tentar(() => API.marcarPresenca(c))) atualizar('Presença marcada. Bom encontro!'); };
+    const nc = $('#novoCod'); if (nc) nc.onclick = async () => { const tem = (D.codigos || []).some((x) => x.encontro_id === encSel); if (tem && !confirm('Gerar um código novo? O código atual deixa de valer.')) return; if (await tentar(() => API.gerarCodigo(encSel))) atualizar('Código gerado.'); };
+    const tl = $('#telao'); if (tl) tl.onclick = () => { const c = (D.codigos || []).find((x) => x.encontro_id === encSel); if (!c) return; const d = document.createElement('div'); d.className = 'telao'; d.innerHTML = `<span class="small">Presença de hoje · digite na plataforma</span><b class="num">${esc(c.codigo)}</b><span class="small">Toque para fechar</span>`; d.onclick = () => { d.remove(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }; document.body.appendChild(d); if (d.requestFullscreen) d.requestFullscreen().catch(() => {}); };
+    const ac = $('#atuCh'); if (ac) ac.onclick = () => { chamada = null; atualizar('Lista atualizada.'); };
     const sc = $('#salvarCh'); if (sc) sc.onclick = async () => { if (await tentar(() => API.salvarPresencas(encSel, chamada))) { chamada = null; atualizar('Chamada salva.'); } };
     const ta = $('#tar'); if (ta) ta.onchange = () => { tarSel = +ta.value; render(); };
     on('[data-salvar-nota]', 'click', async (e) => {
