@@ -512,7 +512,8 @@
   function fachada(n) { let s = 3, h = ''; for (let i = 0; i < n; i++) { s = (s * 9301 + 49297) % 233280; const r = s / 233280; h += `<i class="${r > 0.82 ? 'on' : r > 0.62 ? 'dim' : ''}"></i>`; } return h; }
 
   // ---------- roteamento ----------
-  async function recarregar() { D = await API.carregar(); if (!ehProf()) TURMA = D.eu.turma_id; else if (!D.turmas.some((t) => t.id === TURMA)) TURMA = (D.turmas.find((t) => t.id === 'rj-2027') || D.turmas[0] || {}).id; }
+  function aulasDaTurma() { if (!D) return; D.aulasBase = D.aulasBase || D.aulas; D.aulas = D.aulasBase.map((a) => ({ ...a, ...((a.por_turma || {})[TURMA] || {}) })); }
+  async function recarregar() { D = await API.carregar(); if (!ehProf()) TURMA = D.eu.turma_id; else if (!D.turmas.some((t) => t.id === TURMA)) TURMA = (D.turmas.find((t) => t.id === 'rj-2027') || D.turmas[0] || {}).id; aulasDaTurma(); }
   function render() {
     if (!D) return;
     let h = location.hash.slice(1) || (ehProf() ? 'p-painel' : 'inicio');
@@ -557,7 +558,7 @@
     const mf = $('#msgForm'); if (mf) mf.onsubmit = async (e) => { e.preventDefault(); if (await tentar(() => API.enviarMensagem($('#msg').value.trim()), 'Mensagem enviada à coordenação.')) mf.reset(); };
 
     // professor
-    const st = $('#selTurma'); if (st) st.onchange = () => { TURMA = st.value; try { localStorage.setItem('turma', TURMA); } catch (e) { /* ok */ } encSel = tarSel = editEnc = editTar = null; chamada = null; render(); };
+    const st = $('#selTurma'); if (st) st.onchange = () => { TURMA = st.value; try { localStorage.setItem('turma', TURMA); } catch (e) { /* ok */ } aulasDaTurma(); encSel = tarSel = editEnc = editTar = null; chamada = null; render(); };
     on('tr.go', 'click', (e) => { location.hash = e.currentTarget.dataset.href; });
     const bu = $('#busca'); if (bu) bu.oninput = () => { filtroAluno = bu.value; const pos = bu.selectionStart; render(); const b2 = $('#busca'); b2.focus(); b2.setSelectionRange(pos, pos); };
     const mt = $('#matForm'); if (mt) mt.onsubmit = async (e) => {
