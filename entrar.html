@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR" data-skin="grafite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Área do Aluno · Formação de Síndicos</title>
+<meta name="description" content="Área do aluno da Formação de Síndicos Profissionais: aulas, materiais, presença, notas e certificado.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2316181B'/%3E%3Cpath d='M8 26V10l8-5 8 5v16' fill='none' stroke='%233DDC97' stroke-width='2.5'/%3E%3Cpath d='M12 14h2M18 14h2M12 19h2M18 19h2' stroke='%233DDC97' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Manrope:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section id="login" hidden>
+  <div class="login-art" id="loginArt">
+    <div class="facade" aria-hidden="true"></div>
+    <div class="brandline">
+      <div class="wordmark">Formação de Síndicos <span>Profissionais</span></div>
+      <div class="partner" style="color:#BFD3CB">Área do aluno · certificação ESIC Internacional</div>
+    </div>
+    <blockquote>O síndico que reduz riscos e sabe defender o valor do seu trabalho.</blockquote>
+    <div class="facts">
+      <div><b class="num">80h</b>certificadas</div>
+      <div><b class="num">6</b>módulos</div>
+      <div><b class="num">48</b>ferramentas</div>
+    </div>
+  </div>
+  <div class="login-form">
+    <form id="loginForm">
+      <div class="pagehead">
+        <a class="small muted" href="./" style="text-decoration:none">← Voltar para a página inicial</a>
+        <span class="eyebrow" id="lgCidade">Área do aluno</span>
+        <h1 id="lgTitulo">Entrar na plataforma</h1>
+        <p class="muted" id="lgTexto">Use o e-mail da matrícula e a sua senha.</p>
+      </div>
+      <div class="field"><label for="lgEmail">E-mail</label><input type="email" id="lgEmail" autocomplete="email" required placeholder="seunome@email.com"></div>
+      <div class="field"><label for="lgSenha">Senha</label><input type="password" id="lgSenha" autocomplete="current-password" required minlength="6"></div>
+      <div class="field" id="lgRepetir" hidden><label for="lgSenha2">Repita a senha</label><input type="password" id="lgSenha2" autocomplete="new-password" minlength="6"></div>
+      <p class="erro" id="lgErro" role="alert"></p>
+      <button class="btn btn-primary" type="submit" id="lgBotao">Entrar</button>
+      <p class="small muted" id="lgTroca"></p>
+      <p class="small muted">Esqueceu a senha? Fale com a coordenação pelo e-mail formacaodesindicos@gmail.com.</p>
+      <div class="field" id="demoEntrar" hidden style="border-top:1px solid var(--line);padding-top:16px;margin-top:4px">
+        <span class="eyebrow">Prévia com dados de exemplo</span>
+        <button class="btn btn-accent" type="button" data-demo="aluno">Entrar como aluna (exemplo)</button>
+        <button class="btn btn-ghost" type="button" data-demo="professor">Entrar como professor (exemplo)</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <aside class="side">
+    <div class="brandline" style="display:flex;flex-direction:column;gap:6px">
+      <div class="wordmark">Síndico <span>Profissional</span></div>
+      <div class="partner" id="partner"></div>
+    </div>
+    <nav id="sidenav" aria-label="Menu"></nav>
+    <div class="who" id="who"></div>
+  </aside>
+  <div style="min-width:0">
+    <div class="mobile-top">
+      <div class="wordmark" style="font-size:.95rem">Síndico <span>Profissional</span></div>
+      <a class="avatar" id="mtAv" href="#perfil" aria-label="Meu perfil" style="width:32px;height:32px;font-size:.85rem"></a>
+    </div>
+    <main><div class="wrap" id="view"></div></main>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="Menu"></nav>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="js/demo-curso.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

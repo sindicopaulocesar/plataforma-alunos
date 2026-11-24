@@ -3,7 +3,7 @@
 Área do aluno e painel do professor. Site estático (HTML + JavaScript, sem build) publicado no GitHub Pages, com login, banco e arquivos no Supabase (plano grátis).
 
 ## Como funciona
-- `index.html`, `style.css`, `js/app.js`: as telas.
+- `index.html` (capa), `entrar.html`, `style.css`, `js/app.js`: as telas.
 - `js/api.js`: conversa com o Supabase. Se `config.js` estiver vazio, abre a **prévia** com dados de exemplo.
 - `config.js`: endereço do Supabase e chave pública (anon). Não coloque aqui a chave `service_role` nem senhas.
 - `supabase/01-estrutura.sql`: tabelas, regras de acesso (cada aluno vê só a própria turma e os próprios dados) e pastas de arquivos.

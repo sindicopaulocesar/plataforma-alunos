@@ -621,6 +621,8 @@
     $('#app').hidden = true; $('#login').hidden = false;
     $('#loginArt .facade').innerHTML = fachada(72);
     $('#demoEntrar').hidden = !API.demo;
+    const cid = { 'rj-2027': 'Rio de Janeiro · Centrimóveis', 'sp-2027': 'São Paulo · Condo Hub', 'cwb-2027': 'Curitiba', 'poa-2027': 'Porto Alegre' }[new URLSearchParams(location.search).get('turma')];
+    $('#lgCidade').textContent = cid ? 'Área do aluno · ' + cid : 'Área do aluno';
     trocarModo('entrar');
   }
   function trocarModo(m) {
