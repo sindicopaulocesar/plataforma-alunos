@@ -312,3 +312,10 @@ create policy arq_entregas_aluno on storage.objects for all to authenticated
 drop policy if exists arq_certificado_aluno on storage.objects;
 create policy arq_certificado_aluno on storage.objects for select to authenticated
   using (bucket_id = 'certificados' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------- permissões da API (vale mesmo se o projeto foi criado sem "acesso automático") ----------
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+grant execute on function public.eh_professor(), public.minha_turma() to authenticated;
+grant execute on function public.redefinir_senha(uuid, text) to authenticated;
