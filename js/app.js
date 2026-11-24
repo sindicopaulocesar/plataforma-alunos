@@ -213,7 +213,7 @@
   function linhaDoTempo(encs, alunoId) {
     const hoje = isoHoje(), t = turma(); let prox = false;
     const itens = encs.map((e) => ({ ...e }));
-    if (t.formatura) itens.push({ data: t.formatura, titulo: 'Formatura', detalhe: 'Entrega dos certificados ESIC', tipo: 'formatura', aulas: [] });
+    if (t.formatura) itens.push({ data: t.formatura, titulo: 'Formatura', detalhe: 'Entrega dos certificados', tipo: 'formatura', aulas: [] });
     itens.sort((a, b) => (a.data || '9999').localeCompare(b.data || '9999'));
     return `<div class="timeline">${itens.map((it) => {
       let cls = '', p = '';
@@ -274,15 +274,15 @@
     const r = resumo(D.eu.id), t = turma(), cert = D.certificados.find((c) => c.aluno_id === D.eu.id);
     const piFinal = tarefasT().find((x) => x.tipo === 'pi_final');
     const ck = (ok, txt, dir) => `<li><span class="ck ${ok ? 'y' : 'w'}">${ok ? '✓' : ''}</span><span>${txt}</span><span class="small muted num">${dir}</span></li>`;
-    return `${demoBar()}<div class="pagehead"><span class="eyebrow">Curso de extensão · 80 horas</span><h1>Certificado</h1><p class="muted">O certificado é emitido pela ESIC Internacional, instituição credenciada pelo MEC. Assim que a ESIC enviar, ele aparece aqui para baixar.</p></div>
+    return `${demoBar()}<div class="pagehead"><span class="eyebrow">Curso de extensão · 80 horas</span><h1>Certificado</h1><p class="muted">O certificado é emitido por instituição credenciada pelo MEC. Assim que ele for emitido, aparece aqui para baixar.</p></div>
     <div class="split">
       <div class="cert-preview">${cert ? '' : `<span class="pill p-neutral stamp">Em curso</span>`}
-        <span class="eyebrow">ESIC Internacional · Certificado de extensão</span>
+        <span class="eyebrow">Instituição credenciada pelo MEC · Certificado de extensão</span>
         <h2 style="font-size:1.5rem">Formação de Síndicos Profissionais</h2>
         <p class="ghost">Certificamos que</p>
         <p class="cert-name">${esc(D.eu.nome)}</p>
         <p class="ghost small">concluiu o curso de extensão em Gestão Condominial e Sindicatura${t.cidade ? ', em ' + esc(t.cidade) + (parceiroDe(t) ? ', em parceria com a ' + esc(parceiroDe(t)) : '') : ''}.</p>
-        <p class="small muted" style="margin-top:8px">${cert ? 'Seu certificado oficial já está disponível.' : 'Prévia ilustrativa. O documento oficial é o PDF da ESIC.'}</p>
+        <p class="small muted" style="margin-top:8px">${cert ? 'Seu certificado oficial já está disponível.' : 'Prévia ilustrativa. O documento oficial é o PDF emitido pela instituição credenciada pelo MEC.'}</p>
       </div>
       <div class="card"><h2>${cert ? 'Pronto para baixar' : 'O que falta'}</h2>
         <ul class="checks">
@@ -369,7 +369,7 @@
       `2. No primeiro acesso, digite ${email ? 'este e-mail (' + email + ')' : 'o seu e-mail'} e clique em "Criar minha senha".`,
       '3. Nas próximas vezes, entre com o seu e-mail e a senha que você criou.', '',
       'COMO O CURSO FUNCIONA',
-      '• 80 horas, 6 módulos e 24 aulas, com certificado de extensão pela ESIC.',
+      '• 80 horas, 6 módulos e 24 aulas, com certificado de extensão emitido por instituição credenciada pelo MEC.',
       `• Encontros: ${t.horario && t.inicio ? t.horario + ', a partir de ' + t.inicio.split('-').reverse().join('/') : 'datas a confirmar'}. A agenda completa fica na plataforma.`,
       '• Os materiais de cada aula são liberados uma semana antes do encontro.',
       '• A presença é marcada pelo celular, lendo o QR Code mostrado no encontro.',
@@ -543,8 +543,8 @@
   V['p-certificados'] = () => {
     const rs = alunosT().map((a) => [a, resumo(a.id)]);
     const apto = ([, r]) => r.freq != null && r.freq >= 0.75 && r.final != null && r.final >= 7;
-    return `${cabecalho('Coordenação', 'Certificados', 'A plataforma mostra quem está apto. Exporte a lista para a ESIC e, quando ela devolver os PDFs, carregue o de cada aluno. Ele aparece na hora para o aluno baixar.')}
-    <div class="card"><div class="toolbar"><div style="display:flex;gap:8px;flex-wrap:wrap">${pill(rs.filter(apto).length + ' aptos até agora', 'ok')}${pill(rs.filter((x) => !apto(x)).length + ' ainda não', 'neutral')}</div><button class="btn btn-ghost small" type="button" id="exportar">Baixar lista para a ESIC (planilha)</button></div>
+    return `${cabecalho('Coordenação', 'Certificados', 'A plataforma mostra quem está apto. Exporte a lista para a instituição certificadora e, quando ela devolver os PDFs, carregue o de cada aluno. Ele aparece na hora para o aluno baixar.')}
+    <div class="card"><div class="toolbar"><div style="display:flex;gap:8px;flex-wrap:wrap">${pill(rs.filter(apto).length + ' aptos até agora', 'ok')}${pill(rs.filter((x) => !apto(x)).length + ' ainda não', 'neutral')}</div><button class="btn btn-ghost small" type="button" id="exportar">Baixar lista para a instituição certificadora (planilha)</button></div>
       <div class="tbl-wrap"><table><thead><tr><th>Aluno</th><th class="n">Frequência</th><th class="n">Nota</th><th>Situação</th><th>Certificado</th></tr></thead><tbody>
       ${rs.map(([a, r]) => { const c = D.certificados.find((x) => x.aluno_id === a.id); return `<tr><td><b>${esc(a.nome)}</b></td><td class="n">${r.freq == null ? '—' : Math.round(r.freq * 100) + '%'}</td><td class="n">${n1(r.final)}</td><td>${apto([a, r]) ? pill('Apto', 'ok') : pill('Ainda não', 'neutral')}</td><td>${c ? `${pill('Enviado ' + fd(c.enviado_em), 'brand')} ` : ''}<label class="linkbtn small" style="cursor:pointer">${c ? 'trocar PDF' : 'carregar PDF'}<input type="file" accept="application/pdf" hidden data-cert="${esc(a.id)}"></label></td></tr>`; }).join('')}
       </tbody></table></div></div>`;
