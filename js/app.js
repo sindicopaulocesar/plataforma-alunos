@@ -362,18 +362,30 @@
   const URL_ALUNO = 'https://aluno.formacaodesindicos.com.br/entrar.html';
   // Aviso por e-mail ao professor a cada entrega (FormSubmit, grátis; 1ª vez pede "Activate Form" no Gmail).
   const EMAIL_ENTREGAS = 'formacaodesindicos@gmail.com';
+  // Quando o Apps Script da conta do curso estiver publicado, cole aqui o "URL do app da Web" (termina em /exec):
+  const SCRIPT_ENTREGAS = '';
   function avisarEntrega(tarefaId, f) {
     if (API.demo) return;
     try {
       const tf = D.tarefas.find((x) => x.id === tarefaId) || {}; const t = turma();
       const quando = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      const assunto = `Nova entrega: ${tf.titulo || 'atividade'} · ${D.eu.nome} (${t.nome || ''})`;
+      if (SCRIPT_ENTREGAS) {
+        const manda = (base64) => fetch(SCRIPT_ENTREGAS, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({
+          chave: 'fs-entregas-2027', assunto, aluno: D.eu.nome, email: D.eu.email || '', turma: t.nome || '', atividade: tf.titulo || '', arquivo: f.name, tipo: f.type, quando, link: URL_ALUNO, base64,
+        }) }).catch(() => {});
+        if (f.size > 15 * 1048576) { manda(''); return; }
+        const rd = new FileReader(); rd.onload = () => manda(String(rd.result).split(',')[1] || ''); rd.onerror = () => manda(''); rd.readAsDataURL(f);
+        return;
+      }
       fetch('https://formsubmit.co/ajax/' + EMAIL_ENTREGAS, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({
-        _subject: `Nova entrega: ${tf.titulo || 'atividade'} · ${D.eu.nome} (${t.nome || ''})`, _template: 'table', _captcha: 'false',
+        _subject: assunto, _template: 'table', _captcha: 'false',
         Aluno: D.eu.nome, 'E-mail do aluno': D.eu.email || '', Turma: t.nome || '', Atividade: tf.titulo || '', Arquivo: f.name, 'Enviado em': quando,
         'Para baixar e corrigir': URL_ALUNO + ' → entre como professor → menu Notas e entregas → clique no nome do arquivo na linha do aluno',
       }) }).catch(() => {});
     } catch (_) { /* o aviso nunca atrapalha a entrega */ }
   }
+
   const boasVindas = (nome, email, t) => {
     const cid = cidadeDe(t.id).replace(/^d[oe] /, ''), parc = parceiroDe(t);
     const su = `Bem-vindo(a) à Formação de Síndicos Profissionais · Turma ${cid} 2027`;
