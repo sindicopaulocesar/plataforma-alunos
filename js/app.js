@@ -1,6 +1,16 @@
 // Plataforma do Aluno · Formação de Síndicos Profissionais
 (function () {
   const API = window.API;
+  // Se o site publicou versão nova e este navegador ainda está com a antiga, recarrega sozinho (uma vez).
+  (function versaoNova() {
+    const minha = ((document.currentScript && document.currentScript.src) || '').split('v=')[1];
+    if (!minha || !/^https?:/.test(location.protocol)) return;
+    const checa = () => fetch(location.pathname + '?nc=' + Date.now(), { cache: 'no-store' }).then((r) => r.text()).then((h) => {
+      const atual = (h.match(/app\.js\?v=(\w+)/) || [])[1];
+      if (atual && atual !== minha) { let ja = ''; try { ja = sessionStorage.getItem('recarregou'); } catch (e) { /* ok */ } if (ja !== atual) { try { sessionStorage.setItem('recarregou', atual); } catch (e) { /* ok */ } location.reload(); } }
+    }).catch(() => {});
+    checa(); setInterval(checa, 10 * 60 * 1000);
+  })();
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
