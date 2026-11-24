@@ -324,7 +324,7 @@
         <form class="pform" id="senhaForm"><div class="field"><label for="s1">Nova senha</label><input id="s1" type="password" minlength="6" required autocomplete="new-password"></div><div class="field"><label for="s2">Repita a nova senha</label><input id="s2" type="password" minlength="6" required autocomplete="new-password"></div><div><button class="btn btn-ghost small" type="submit">Trocar senha</button></div></form>
       </div></div>
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${contato()}
-      ${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '' : `<div class="card"><h2>App no celular</h2><p class="small muted" style="margin-bottom:12px">Instale a área do aluno como app: o ícone FS fica na tela do celular e abre direto aqui, em tela cheia.</p><button class="btn btn-primary small" type="button" onclick="window.instalarApp && window.instalarApp()">Instalar app</button></div>`}</div>
+      ${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '' : `<div class="card"><h2>App no celular</h2><p class="small muted" style="margin-bottom:12px">Instale a área do aluno como app: o ícone FS fica na tela do celular e abre direto aqui, em tela cheia.</p><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-primary small" type="button" onclick="window.instalarApp && window.instalarApp()">Instalar app</button><a class="linkbtn small" href="instalar.html">Passo a passo com imagens (iPhone e Android)</a></div></div>`}</div>
     </div>`;
 
   function contato() {

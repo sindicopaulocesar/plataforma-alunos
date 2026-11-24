@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Instalar o app · Formação de Síndicos</title>
+<meta name="description" content="Passo a passo com imagens para instalar o app da área do aluno no iPhone e no Android.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16181B">
+<link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+<link rel="icon" href="img/app/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#F6F7F6;--surface:#fff;--ink:#16191B;--muted:#5B6461;--line:#E0E4E2;--soft:#ECEFEE;--dark:#16181B;--green:#3DDC97;--green-ink:#13795B;
+  --fd:"Sora","Segoe UI",Arial,sans-serif;--fb:"Manrope","Segoe UI",Roboto,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1011;--surface:#16191B;--ink:#E8ECEA;--muted:#9BA6A2;--line:#2A2F33;--soft:#1D2124;--green-ink:#3DDC97}}
+:root[data-theme="dark"]{--bg:#0E1011;--surface:#16191B;--ink:#E8ECEA;--muted:#9BA6A2;--line:#2A2F33;--soft:#1D2124;--green-ink:#3DDC97}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:16px;line-height:1.55}
+h1,h2,h3{font-family:var(--fd);line-height:1.15;margin:0;letter-spacing:-.01em}
+.top{background:var(--dark);color:#fff}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
+.logo img{width:40px;height:40px;border-radius:9px}
+.logo b{font-family:var(--fd);font-size:.95rem;line-height:1.2}
+.bar a.voltar{color:var(--green);font-weight:700;text-decoration:none;font-size:.95rem}
+.hero{padding:28px 0 36px;display:grid;gap:12px}
+.hero h1{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:800}
+.hero h1 span{color:var(--green)}
+.hero p{color:#C9D1CE;max-width:60ch}
+.abas{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.abas button{font:inherit;font-weight:800;font-family:var(--fd);border-radius:999px;padding:11px 20px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:#fff;cursor:pointer}
+.abas button[aria-selected="true"]{background:var(--green);border-color:var(--green);color:#062B1A}
+main.wrap{padding-top:40px;padding-bottom:56px}
+.tut[hidden]{display:none}
+.tut>h2{font-size:clamp(1.4rem,3.4vw,1.9rem);font-weight:800;margin-bottom:6px}
+.tut>p.sub{color:var(--muted);margin:0 0 22px}
+.passos{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;list-style:none;margin:0;padding:0;counter-reset:p}
+.passo{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;counter-increment:p}
+.passo .txt{display:flex;gap:12px;align-items:flex-start}
+.passo .txt:before{content:counter(p);flex:none;width:34px;height:34px;border-radius:50%;background:var(--green);color:#062B1A;font-family:var(--fd);font-weight:800;display:grid;place-items:center}
+.passo .txt p{margin:4px 0 0;min-width:0;overflow-wrap:anywhere}
+.passo .txt small{display:block;color:var(--muted);margin-top:4px}
+.passo svg{width:100%;max-width:240px;height:auto;margin:0 auto;display:block}
+.nota{margin-top:22px;background:var(--soft);border-radius:12px;padding:14px 16px;font-size:.95rem}
+.nota b{font-family:var(--fd)}
+footer{background:var(--dark);color:#C9D1CE;padding:28px 0;font-size:.92rem}
+footer a{color:var(--green)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="logo" href="entrar.html"><img src="img/app/icon-192.png" alt=""><b>Formação de Síndicos<br>Profissionais</b></a>
+      <a class="voltar" href="entrar.html">Área do aluno →</a>
+    </div>
+    <div class="hero">
+      <h1>Instale o <span>app da área do aluno</span> no celular</h1>
+      <p>Com o app, o ícone <b>FS</b> fica na tela do celular e abre direto na área do aluno, em tela cheia: aulas, materiais, presença, notas e certificado. Não precisa baixar nada da loja de aplicativos.</p>
+      <div class="abas" role="tablist">
+        <button role="tab" id="ab-ios" aria-selected="true" aria-controls="ios">iPhone</button>
+        <button role="tab" id="ab-and" aria-selected="false" aria-controls="android">Android</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="tut" id="ios" role="tabpanel" aria-labelledby="ab-ios">
+    <h2>iPhone (Safari)</h2>
+    <p class="sub">Leva menos de 1 minuto. Use o <b>Safari</b>, o navegador da bússola azul que já vem no iPhone.</p>
+    <ol class="passos">
+      <li class="passo"><div class="txt"><p>Abra o <b>Safari</b> e entre em <b>aluno.formacaodesindicos.com.br</b><small>Não precisa fazer login antes.</small></p></div><svg data-tela="ios1"></svg></li>
+      <li class="passo"><div class="txt"><p>Toque nos <b>três pontinhos (•••)</b>, no canto de baixo à direita.<small>Em iPhones mais antigos, toque direto no botão Compartilhar (o quadrado com a seta ⬆️) e pule para o passo 4.</small></p></div><svg data-tela="ios2"></svg></li>
+      <li class="passo"><div class="txt"><p>No menu que abriu, toque em <b>Compartilhar</b>.</p></div><svg data-tela="ios3"></svg></li>
+      <li class="passo"><div class="txt"><p>Role a lista para baixo e toque em <b>Adicionar à Tela de Início</b>.</p></div><svg data-tela="ios4"></svg></li>
+      <li class="passo"><div class="txt"><p>Toque em <b>Adicionar</b>, no canto de cima à direita.</p></div><svg data-tela="ios5"></svg></li>
+      <li class="passo"><div class="txt"><p>Pronto! O ícone <b>FS</b> está na tela do celular. Toque nele para entrar.</p></div><svg data-tela="home"></svg></li>
+    </ol>
+    <div class="nota"><b>Não achou "Adicionar à Tela de Início"?</b> Confira se a página está aberta no Safari. Pelo Chrome ou por dentro do WhatsApp, a opção pode não aparecer: toque em "Abrir no Safari" e faça de novo.</div>
+  </section>
+
+  <section class="tut" id="android" role="tabpanel" aria-labelledby="ab-and" hidden>
+    <h2>Android (Chrome)</h2>
+    <p class="sub">Leva menos de 1 minuto. Use o <b>Chrome</b>, o navegador que já vem na maioria dos celulares Android.</p>
+    <ol class="passos">
+      <li class="passo"><div class="txt"><p>Abra o <b>Chrome</b> e entre em <b>aluno.formacaodesindicos.com.br</b></p></div><svg data-tela="and1"></svg></li>
+      <li class="passo"><div class="txt"><p>Embaixo aparece o aviso <b>"Instale o app no celular"</b>. Toque em <b>Instalar</b>.<small>Se o aviso não aparecer, veja o caminho alternativo logo abaixo.</small></p></div><svg data-tela="and2"></svg></li>
+      <li class="passo"><div class="txt"><p>Na janela do celular, toque em <b>Instalar</b> de novo.</p></div><svg data-tela="and3"></svg></li>
+      <li class="passo"><div class="txt"><p>Pronto! O ícone <b>FS</b> está na tela do celular. Toque nele para entrar.</p></div><svg data-tela="homeA"></svg></li>
+    </ol>
+    <h3 style="margin:30px 0 14px;font-size:1.2rem">Caminho alternativo: pelo menu do Chrome</h3>
+    <ol class="passos">
+      <li class="passo"><div class="txt"><p>Toque nos <b>três pontinhos (⋮)</b>, no canto de cima à direita.</p></div><svg data-tela="and4"></svg></li>
+      <li class="passo"><div class="txt"><p>Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>. Depois confirme em <b>Instalar</b>.</p></div><svg data-tela="and5"></svg></li>
+    </ol>
+  </section>
+</main>
+
+<footer><div class="wrap">Dúvidas? WhatsApp (41) 99929-8991 · <a href="mailto:formacaodesindicos@gmail.com">formacaodesindicos@gmail.com</a> · <a href="entrar.html">Entrar na área do aluno</a></div></footer>
+
+<script>
+(function () {
+  // Ilustrações das telas (desenhadas aqui, sem fotos)
+  const G = '#3DDC97', D = '#16181B';
+  const W = 240, H = 440;
+  const t = (x, y, s, o = {}) => `<text x="${x}" y="${y}" font-family="Manrope,Arial,sans-serif" font-size="${o.fs || 12}" font-weight="${o.fw || 600}" fill="${o.c || '#16191B'}" text-anchor="${o.a || 'start'}">${s}</text>`;
+  const r = (x, y, w, h, f, o = {}) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx || 0}" fill="${f}" ${o.s ? `stroke="${o.s}" stroke-width="${o.sw || 1}"` : ''}/>`;
+  const alvo = (x, y, w, h) => `<rect x="${x - 4}" y="${y - 4}" width="${w + 8}" height="${h + 8}" rx="12" fill="none" stroke="#FF4D4F" stroke-width="3"/>`;
+  const dedo = (x, y) => `<g transform="translate(${x} ${y})"><circle r="15" fill="#FF4D4F" opacity=".22"/><circle r="7" fill="#FF4D4F"/></g>`;
+  const icone = (x, y, s) => `<g transform="translate(${x} ${y})">${r(0, 0, s, s, D, { rx: s * .22 })}<circle cx="${s / 2}" cy="${s / 2}" r="${s * .36}" fill="none" stroke="${G}" stroke-width="${s * .05}"/><text x="${s / 2}" y="${s * .62}" text-anchor="middle" font-family="Sora,Arial,sans-serif" font-weight="800" font-size="${s * .34}" fill="#fff">FS</text></g>`;
+  const moldura = (miolo, escuro) => `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">
+    ${r(2, 2, W - 4, H - 4, '#0B0C0D', { rx: 34 })}${r(10, 10, W - 20, H - 20, escuro ? '#101214' : '#fff', { rx: 27 })}
+    ${miolo}${r(88, 18, 64, 16, '#0B0C0D', { rx: 8 })}</svg>`;
+  const site = () => `${r(10, 44, W - 20, 300, '#16181B')}${t(26, 76, 'SÍNDICO', { c: '#fff', fw: 800, fs: 13 })}${t(84, 76, 'PROFISSIONAL', { c: G, fw: 800, fs: 13 })}
+    ${r(26, 96, 188, 92, '#1F2327', { rx: 10 })}${t(38, 120, 'PRÓXIMO ENCONTRO', { c: '#9BA6A2', fs: 9, fw: 700 })}${t(38, 142, 'Módulo I · 1ª noite', { c: '#fff', fw: 800, fs: 14 })}${r(38, 154, 46, 24, G, { rx: 6 })}
+    ${r(26, 200, 188, 60, '#1F2327', { rx: 10 })}${r(26, 272, 188, 60, '#1F2327', { rx: 10 })}`;
+  const barraSafari = (marca) => `${r(10, 344, W - 20, 86, '#F2F2F4', { rx: 0 })}${r(22, 362, 36, 36, '#fff', { rx: 18 })}${t(40, 386, '‹', { a: 'middle', fs: 22, fw: 400 })}
+    ${r(64, 362, 118, 36, '#fff', { rx: 18 })}${t(123, 385, 'aluno.formacaode…', { a: 'middle', fs: 10.5 })}${r(188, 362, 36, 36, '#fff', { rx: 18 })}${t(206, 384, '•••', { a: 'middle', fs: 13, fw: 800 })}
+    ${marca ? alvo(188, 362, 36, 36) + dedo(214, 394) : ''}${r(84, 414, 72, 4, '#111', { rx: 2 })}`;
+  const folha = (y, itens, i) => `${r(10, 44, W - 20, H - 54, 'rgba(0,0,0,.35)', { rx: 0 })}${r(10, 344, W - 20, 76, 'rgba(0,0,0,.35)', { rx: 0 })}${r(18, y, W - 36, H - y - 28, '#fff', { rx: 16 })}
+    ${itens.map((s, k) => `${k ? r(30, y + 14 + k * 40, W - 60, 1, '#E5E5EA') : ''}${t(34, y + 40 + k * 40, s, { fs: 12.5, fw: k === i ? 800 : 600 })}${k === i ? alvo(26, y + 18 + k * 40, W - 52, 32) + dedo(W - 50, y + 36 + k * 40) : ''}`).join('')}`;
+  const telaHome = (android) => {
+    let s = r(10, 10, W - 20, H - 20, android ? '#1B3A4B' : '#3B5B85', { rx: 27 });
+    const cores = ['#F2C14E', '#FF7A59', '#6BCB77', '#4D96FF', '#C77DFF', '#FFB4A2', '#9BF6FF', '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4'];
+    let k = 0;
+    for (let l = 0; l < 4; l++) for (let c = 0; c < 4; c++) {
+      const x = 26 + c * 50, y = 60 + l * 70;
+      if (l === 2 && c === 1) { s += icone(x, y, 40) + alvo(x, y, 40, 40) + t(x + 20, y + 56, android ? 'Síndicos' : 'Síndicos', { c: '#fff', a: 'middle', fs: 10, fw: 700 }); continue; }
+      s += r(x, y, 40, 40, cores[k++ % cores.length], { rx: android ? 20 : 9 }) + r(x + 6, y + 50, 28, 4, 'rgba(255,255,255,.5)', { rx: 2 });
+    }
+    return s + r(30, 372, W - 60, 46, 'rgba(255,255,255,.18)', { rx: 22 }) + r(84, 424, 72, 4, '#fff', { rx: 2 });
+  };
+  const chromeTopo = (marca) => `${r(10, 44, W - 20, 40, '#F1F3F4')}${r(20, 52, 170, 26, '#fff', { rx: 13 })}${t(34, 69, 'aluno.formacaodesindicos…', { fs: 10 })}${t(212, 72, '⋮', { a: 'middle', fs: 20, fw: 800 })}${marca ? alvo(200, 52, 24, 26) + dedo(214, 70) : ''}`;
+  const siteA = () => `${chromeTopo(false)}${r(10, 84, W - 20, 300, '#16181B')}${t(26, 114, 'SÍNDICO', { c: '#fff', fw: 800, fs: 13 })}${t(84, 114, 'PROFISSIONAL', { c: G, fw: 800, fs: 13 })}
+    ${r(26, 130, 188, 92, '#1F2327', { rx: 10 })}${t(38, 154, 'PRÓXIMO ENCONTRO', { c: '#9BA6A2', fs: 9, fw: 700 })}${t(38, 176, 'Módulo I · 1ª noite', { c: '#fff', fw: 800, fs: 14 })}${r(38, 188, 46, 24, G, { rx: 6 })}
+    ${r(26, 234, 188, 60, '#1F2327', { rx: 10 })}${r(10, 384, W - 20, 46, '#fff', { rx: 0 })}${r(84, 416, 72, 4, '#111', { rx: 2 })}`;
+  const convite = (marca) => `${r(18, 300, W - 36, 70, '#16181B', { rx: 14, s: '#2A2F33' })}${icone(28, 315, 38)}${t(74, 330, 'Instale o app', { c: '#fff', fw: 800, fs: 11.5 })}${t(74, 346, 'no celular', { c: '#fff', fw: 800, fs: 11.5 })}
+    ${r(150, 318, 62, 32, G, { rx: 8 })}${t(181, 339, 'Instalar', { a: 'middle', fw: 800, fs: 11, c: '#062B1A' })}${marca ? alvo(150, 318, 62, 32) + dedo(200, 346) : ''}`;
+  const telas = {
+    ios1: () => moldura(site() + barraSafari(false)),
+    ios2: () => moldura(site() + barraSafari(true)),
+    ios3: () => moldura(site() + barraSafari(false) + folha(250, ['Compartilhar', 'Adicionar aos Favoritos', 'Nova Aba', 'Buscar na Página'], 0)),
+    ios4: () => moldura(site() + folha(150, ['Copiar', 'Adicionar à Lista de Leitura', 'Adicionar Favorito', 'Adicionar à Tela de Início', 'Buscar na Página'], 3)),
+    ios5: () => moldura(`${r(10, 44, W - 20, H - 54, '#F2F2F7')}${t(24, 74, 'Cancelar', { c: '#0A84FF', fs: 10.5 })}${t(116, 74, 'Tela de Início', { a: 'middle', fw: 800, fs: 11 })}${t(198, 74, 'Adicionar', { c: '#0A84FF', fw: 800, fs: 11, a: 'middle' })}${alvo(172, 60, 52, 20)}${dedo(212, 80)}
+      ${r(22, 100, W - 44, 76, '#fff', { rx: 12 })}${icone(32, 110, 56)}${t(100, 134, 'Síndicos', { fs: 13, fw: 700 })}${r(100, 146, 90, 1, '#E5E5EA')}${t(100, 164, 'aluno.formacao…', { c: '#8E8E93', fs: 10 })}
+      ${r(22, 196, W - 44, 40, '#fff', { rx: 12 })}${t(34, 221, 'Abrir como App Web', { fs: 11.5 })}${r(184, 206, 34, 20, '#34C759', { rx: 10 })}<circle cx="208" cy="216" r="8" fill="#fff"/>`),
+    home: () => moldura(telaHome(false)),
+    and1: () => moldura(siteA()),
+    and2: () => moldura(siteA() + convite(true)),
+    and3: () => moldura(siteA() + `${r(10, 44, W - 20, H - 54, 'rgba(0,0,0,.45)')}${r(26, 150, W - 52, 150, '#fff', { rx: 20 })}${t(42, 182, 'Instalar app?', { fw: 800, fs: 15 })}${icone(42, 198, 40)}${t(92, 214, 'Síndicos', { fw: 700, fs: 12 })}${t(92, 230, 'aluno.formacaodesindicos…', { fs: 9.5, c: '#5B6461' })}
+      ${t(112, 280, 'Cancelar', { c: '#1A73E8', fw: 700, fs: 12, a: 'middle' })}${r(150, 262, 64, 28, '#1A73E8', { rx: 14 })}${t(182, 281, 'Instalar', { c: '#fff', fw: 800, fs: 12, a: 'middle' })}${alvo(150, 262, 64, 28)}${dedo(202, 288)}`),
+    homeA: () => moldura(telaHome(true)),
+    and4: () => moldura(siteA().replace(chromeTopo(false), chromeTopo(true))),
+    and5: () => moldura(siteA() + `${r(98, 50, 132, 250, '#fff', { rx: 8, s: '#ddd' })}${['Nova guia', 'Histórico', 'Downloads', 'Favoritos', 'Compartilhar…', 'Instalar app', 'Configurações'].map((s, k) => t(110, 80 + k * 32, s, { fs: 11, fw: k === 5 ? 800 : 600 })).join('')}${alvo(102, 230, 124, 26)}${dedo(206, 248)}`),
+  };
+  document.querySelectorAll('svg[data-tela]').forEach((el) => { const f = telas[el.dataset.tela]; if (f) el.outerHTML = f(); });
+
+  // Abas: abre no sistema do celular de quem está vendo
+  const abas = { ios: document.getElementById('ab-ios'), android: document.getElementById('ab-and') };
+  function mostra(q) { for (const k in abas) { abas[k].setAttribute('aria-selected', k === q); document.getElementById(k).hidden = k !== q; } }
+  abas.ios.onclick = () => mostra('ios'); abas.android.onclick = () => mostra('android');
+  const pedido = (location.hash || '').replace('#', '');
+  if (pedido === 'android' || pedido === 'ios') mostra(pedido); else if (/Android/i.test(navigator.userAgent)) mostra('android');
+})();
+</script>
+</body>
+</html>

@@ -26,7 +26,7 @@
       <li>Role a lista e toque em <b>Adicionar à Tela de Início</b>.</li>
       <li>Toque em <b>Adicionar</b>, no canto de cima.</li></ol>
       <p style="margin:0 0 16px;color:#5B6461">O ícone <b>FS</b> aparece na tela do celular e abre a área do aluno em tela cheia.</p>
-      <button class="ok" type="button">Entendi</button></div>`;
+      <a href="instalar.html" style="display:block;text-align:center;margin:0 0 12px;color:#13795B;font-weight:800">Ver o passo a passo com imagens</a><button class="ok" type="button">Entendi</button></div>`;
     m.addEventListener('click', (e) => { if (e.target === m || e.target.classList.contains('ok')) m.remove(); });
     document.body.appendChild(m);
   }
