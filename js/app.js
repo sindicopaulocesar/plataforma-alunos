@@ -683,11 +683,13 @@
 
   // ---------- entrada ----------
   let modoEntrada = 'entrar';
+  const CIDADES = { 'rj-2027': 'Rio de Janeiro · Centrimóveis', 'sp-2027': 'São Paulo · Condo Hub', 'cwb-2027': 'Curitiba', 'poa-2027': 'Porto Alegre' };
+  const cidadeDe = (id) => { const c = (CIDADES[id] || id || '').split(' · ')[0]; return (/^Rio /.test(c) ? 'do ' : 'de ') + c; };
   function telaEntrada() {
     $('#app').hidden = true; $('#login').hidden = false;
     $('#loginArt .facade').innerHTML = fachada(72);
     $('#demoEntrar').hidden = !API.demo;
-    const cid = { 'rj-2027': 'Rio de Janeiro · Centrimóveis', 'sp-2027': 'São Paulo · Condo Hub', 'cwb-2027': 'Curitiba', 'poa-2027': 'Porto Alegre' }[new URLSearchParams(location.search).get('turma')];
+    const cid = CIDADES[new URLSearchParams(location.search).get('turma')];
     $('#lgCidade').textContent = cid ? 'Área do aluno · ' + cid : 'Área do aluno';
     trocarModo('entrar');
   }
@@ -763,6 +765,12 @@
 
   async function iniciar() {
     try { await recarregar(); } catch (e) { console.error(e); await API.sair(); telaEntrada(); $('#lgErro').textContent = API.erroAmigavel(e); return; }
+    const pedida = new URLSearchParams(location.search).get('turma'), minha = D.eu.turma_id;
+    if (pedida && !ehProf() && pedida !== minha) {
+      D = null; await API.sair(); telaEntrada();
+      $('#lgErro').innerHTML = `Você não está matriculado na turma ${esc(cidadeDe(pedida))}.${minha ? ` A sua turma é a ${esc(cidadeDe(minha))}: <a href="entrar.html?turma=${encodeURIComponent(minha)}">entrar pela turma ${esc(cidadeDe(minha))}</a>.` : ' Fale com a coordenação.'}`;
+      return;
+    }
     $('#login').hidden = true; $('#app').hidden = false; render();
     presencaPendente();
   }
@@ -770,7 +778,7 @@
   window.addEventListener('hashchange', () => { if (D) { render(); window.scrollTo(0, 0); } });
   document.addEventListener('DOMContentLoaded', async () => {
     $('#loginForm').addEventListener('submit', entrarSubmit);
-    $$('[data-demo]').forEach((b) => { b.onclick = async () => { await API.entrarComo(b.dataset.demo); history.replaceState(null, '', location.pathname); await iniciar(); }; });
+    $$('[data-demo]').forEach((b) => { b.onclick = async () => { await API.entrarComo(b.dataset.demo); history.replaceState(null, '', location.pathname + location.search); await iniciar(); }; });
     try { if (await API.sessao()) { await iniciar(); return; } } catch (e) { console.error(e); }
     telaEntrada();
   });
