@@ -607,16 +607,28 @@
         const titulo = nomeBonito(nome); const ja = D.materiais.some((x) => x.aula === aula && !x.turma_id && x.titulo === titulo);
         lista.push({ f, aula, titulo, ja });
       });
-      const novos = lista.filter((x) => !x.ja), aulas = [...new Set(novos.map((x) => x.aula))].sort((a, b) => a - b);
       const res = $('#muPastaRes');
-      if (!novos.length) { res.innerHTML = `<p class="small muted">${lista.length ? 'Todos os arquivos dessa pasta já estão publicados.' : 'Não achei arquivos dentro de pastas "Aula 01", "Aula 02"... Confira se escolheu a pasta certa.'}</p>`; mp.value = ''; return; }
-      res.innerHTML = `<p class="small"><b>${novos.length} arquivo${novos.length > 1 ? 's' : ''} novo${novos.length > 1 ? 's' : ''}</b> para ${aulas.length === 1 ? 'a aula ' + aulas[0] : 'as aulas ' + aulas.join(', ')}${lista.length > novos.length ? ` · ${lista.length - novos.length} já publicado${lista.length - novos.length > 1 ? 's' : ''} (vou pular)` : ''}.</p>
-        <ul class="small muted" style="margin:6px 0 12px;padding-left:18px">${novos.map((x) => `<li>Aula ${x.aula} · ${esc(x.titulo)}</li>`).join('')}</ul>
+      if (!lista.length) { res.innerHTML = `<p class="small muted">Não achei arquivos dentro de pastas "Aula 01", "Aula 02"... Confira se escolheu a pasta certa.</p>`; mp.value = ''; return; }
+      const nJa = lista.filter((x) => x.ja).length;
+      const desenhar = () => {
+        const subst = !!($('#muSubst') || {}).checked;
+        const envio = subst ? lista : lista.filter((x) => !x.ja), aulas = [...new Set(envio.map((x) => x.aula))].sort((a, b) => a - b);
+        $('#muPastaLista').innerHTML = envio.length ? `<p class="small"><b>${envio.length} arquivo${envio.length > 1 ? 's' : ''}</b> para ${aulas.length === 1 ? 'a aula ' + aulas[0] : 'as aulas ' + aulas.join(', ')}${!subst && nJa ? ` · ${nJa} já publicado${nJa > 1 ? 's' : ''} (vou pular)` : ''}.</p>
+          <ul class="small muted" style="margin:6px 0 12px;padding-left:18px">${envio.map((x) => `<li>Aula ${x.aula} · ${esc(x.titulo)}${x.ja ? ' <b>(substitui o antigo)</b>' : ''}</li>`).join('')}</ul>` : '<p class="small muted">Todos os arquivos dessa pasta já estão publicados. Para trocar pelas versões novas, marque a opção acima.</p>';
+        $('#muPastaOk').hidden = !envio.length; return envio;
+      };
+      res.innerHTML = `${nJa ? `<label class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="muSubst"> Substituir os ${nJa} que já estão publicados pela versão desta pasta</label>` : ''}
+        <div id="muPastaLista"></div>
         <button class="btn btn-primary small" type="button" id="muPastaOk">Publicar todos</button> <span class="small muted" id="muPastaInfo"></span>`;
+      if ($('#muSubst')) $('#muSubst').onchange = desenhar;
+      desenhar();
       $('#muPastaOk').onclick = async () => {
+        const envio = desenhar(); if (!envio.length) return;
         $('#muPastaOk').disabled = true;
-        const ok = await tentar(async () => { for (let i = 0; i < novos.length; i++) { const x = novos[i]; $('#muPastaInfo').textContent = `Enviando ${i + 1} de ${novos.length}…`; await API.addMaterial({ aula: x.aula, turma_id: null, titulo: x.titulo, file: x.f, liberado_em: (noiteDa(x.aula) || {}).data || isoHoje() }); } });
-        if (ok) atualizar(`${novos.length} materiais publicados nas aulas certas.`); else { $('#muPastaOk').disabled = false; $('#muPastaInfo').textContent = ''; }
+        const ok = await tentar(async () => { for (let i = 0; i < envio.length; i++) { const x = envio[i]; $('#muPastaInfo').textContent = `Enviando ${i + 1} de ${envio.length}…`;
+          if (x.ja) { for (const velho of D.materiais.filter((m) => m.aula === x.aula && !m.turma_id && m.titulo === x.titulo)) await API.removerMaterial(velho); }
+          await API.addMaterial({ aula: x.aula, turma_id: null, titulo: x.titulo, file: x.f, liberado_em: (noiteDa(x.aula) || {}).data || isoHoje() }); } });
+        if (ok) atualizar(`${envio.length} materiais publicados nas aulas certas.`); else { $('#muPastaOk').disabled = false; $('#muPastaInfo').textContent = ''; }
       };
     };
     const ma = $('#muArq'); if (ma) ma.onchange = () => { const f = ma.files[0]; $('#muTit').value = ma.files.length === 1 ? nomeBonito(f.name) : ''; $('#muTit').disabled = ma.files.length > 1; };
