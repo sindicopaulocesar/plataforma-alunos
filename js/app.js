@@ -367,7 +367,7 @@
     try {
       const tf = D.tarefas.find((x) => x.id === tarefaId) || {}; const t = turma();
       const quando = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-      fetch('https://formsubmit.co/ajax/' + EMAIL_ENTREGAS, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({
+      fetch('https://formsubmit.co/ajax/' + EMAIL_ENTREGAS, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({
         _subject: `Nova entrega: ${tf.titulo || 'atividade'} · ${D.eu.nome} (${t.nome || ''})`, _template: 'table', _captcha: 'false',
         Aluno: D.eu.nome, 'E-mail do aluno': D.eu.email || '', Turma: t.nome || '', Atividade: tf.titulo || '', Arquivo: f.name, 'Enviado em': quando,
         'Para baixar e corrigir': URL_ALUNO + ' → entre como professor → menu Notas e entregas → clique no nome do arquivo na linha do aluno',
