@@ -59,6 +59,7 @@
   // ---------- cálculos ----------
   const ehProf = () => D && D.eu.papel === 'professor';
   const turma = () => D.turmas.find((t) => t.id === TURMA) || D.turmas[0] || { id: null, nome: 'Sem turma', cidade: '', parceiro: '' };
+  const parceiroDe = (t) => (t && t.parceiro && !/^a definir$/i.test(t.parceiro.trim()) ? t.parceiro : '');
   const daTurma = (arr) => arr.filter((x) => x.turma_id === TURMA);
   const encontrosT = () => daTurma(D.encontros).sort((a, b) => (a.data || '9999').localeCompare(b.data || '9999') || a.id - b.id);
   const tarefasT = () => daTurma(D.tarefas).sort((a, b) => a.ordem - b.ordem || a.id - b.id);
@@ -106,7 +107,7 @@
     const tabs = prof ? TAB_PROF : TAB_ALUNO;
     $('#tabbar').style.setProperty('--n', tabs.length + (prof ? 1 : 0));
     $('#tabbar').innerHTML = tabs.map((k) => { const it = nav.find((x) => x[0] === k); return `<a href="#${k}" data-nav="${k}">${svg(it[2])}<span>${it[1].split(' ')[0]}</span></a>`; }).join('') + (prof ? `<a href="#p-mais" data-nav="p-mais">${svg('painel')}<span>Mais</span></a>` : '');
-    $('#partner').innerHTML = prof ? 'Coordenação do curso' : `${esc(t.nome.replace('Turma ', 'Turma '))} · <b>${esc(t.parceiro)}</b>`;
+    $('#partner').innerHTML = prof ? 'Coordenação do curso' : `${esc(t.nome)}${parceiroDe(t) ? ` · <b>${esc(parceiroDe(t))}</b>` : ''}`;
     $('#who').innerHTML = `<span class="avatar">${esc(ini(D.eu.nome))}</span><span style="min-width:0"><b style="display:block;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(D.eu.nome)}</b><button type="button" id="logout">Sair</button></span>`;
     $('#mtAv').textContent = ini(D.eu.nome);
     $('#mtAv').href = prof ? '#p-painel' : '#perfil';
@@ -270,7 +271,7 @@
         <h2 style="font-size:1.5rem">Formação de Síndicos Profissionais</h2>
         <p class="ghost">Certificamos que</p>
         <p class="cert-name">${esc(D.eu.nome)}</p>
-        <p class="ghost small">concluiu o curso de extensão em Gestão Condominial e Sindicatura${t.cidade ? ', em ' + esc(t.cidade) + ', em parceria com a ' + esc(t.parceiro) : ''}.</p>
+        <p class="ghost small">concluiu o curso de extensão em Gestão Condominial e Sindicatura${t.cidade ? ', em ' + esc(t.cidade) + (parceiroDe(t) ? ', em parceria com a ' + esc(parceiroDe(t)) : '') : ''}.</p>
         <p class="small muted" style="margin-top:8px">${cert ? 'Seu certificado oficial já está disponível.' : 'Prévia ilustrativa. O documento oficial é o PDF da ESIC.'}</p>
       </div>
       <div class="card"><h2>${cert ? 'Pronto para baixar' : 'O que falta'}</h2>
@@ -329,7 +330,7 @@
     const fMed = media(rs.map(([, r]) => r.freq).filter((v) => v != null)), nMed = media(rs.map(([, r]) => r.final).filter((v) => v != null));
     const risco = rs.filter(([, r]) => (r.freq != null && r.freq < 0.75) || (r.final != null && r.final < 7));
     const corrigir = D.entregas.filter((e) => tarefasT().some((t) => t.id === e.tarefa_id) && !D.notas.some((n) => n.tarefa_id === e.tarefa_id && n.aluno_id === e.aluno_id && n.nota != null));
-    return `${cabecalho('Coordenação', esc(turma().nome), `${esc(turma().parceiro)}${turma().horario ? ' · ' + esc(turma().horario) : ''}`)}
+    return `${cabecalho('Coordenação', esc(turma().nome), [parceiroDe(turma()), turma().horario].filter(Boolean).map(esc).join(' · '))}
     <div class="grid g4">
       <div class="card stat"><span class="eyebrow">Alunos</span><span class="big num">${als.length}</span><span class="small muted">${mat.length} matriculados${semSenha ? ` · ${semSenha} ainda sem senha` : ''}</span></div>
       <div class="card stat"><span class="eyebrow">Frequência média</span><span class="big num">${fMed == null ? '—' : Math.round(fMed * 100) + '%'}</span>${bar(fMed)}</div>
