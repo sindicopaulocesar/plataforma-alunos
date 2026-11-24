@@ -15,6 +15,7 @@
     if (/Password should be at least/i.test(m) || /SENHA_CURTA/.test(m)) return 'A senha precisa ter pelo menos 6 caracteres.';
     if (/Email not confirmed/i.test(m)) return 'O e-mail ainda não foi confirmado. Avise a coordenação.';
     if (/Payload too large|exceeded the maximum/i.test(m)) return 'O arquivo é grande demais.';
+    if (/row-level security|SEM_PROFESSOR/i.test(m)) return 'Você não está mais conectado como professor neste navegador (a sessão expirou ou alguém entrou como aluno em outra aba). Clique em Sair, entre de novo como professor e tente outra vez.';
     if (/Failed to fetch|NetworkError/i.test(m)) return 'Sem conexão com a internet. Tente de novo.';
     return m;
   }
@@ -86,6 +87,12 @@
       async salvarNota(tarefa_id, aluno_id, nota, comentario) {
         if (nota === null && !comentario) ok(await sb.from('notas').delete().eq('tarefa_id', tarefa_id).eq('aluno_id', aluno_id));
         else ok(await sb.from('notas').upsert({ tarefa_id, aluno_id, nota, comentario: comentario || null, lancada_em: new Date().toISOString() }));
+      },
+      async conferirProfessor() {
+        const { data } = await sb.auth.getSession();
+        if (!data || !data.session) throw new Error('SEM_PROFESSOR');
+        const r = await sb.rpc('eh_professor');
+        if (r.error || r.data !== true) throw new Error('SEM_PROFESSOR');
       },
       async addMaterial(m) {
         let caminho = null;
@@ -225,6 +232,7 @@
       async salvarPresencas(encontro_id, mapa) { Object.entries(mapa).forEach(([aluno_id, status]) => { const i = presencas.findIndex((p) => p.encontro_id === encontro_id && p.aluno_id === aluno_id); if (i >= 0) presencas.splice(i, 1); if (status) presencas.push({ encontro_id, aluno_id, status }); }); },
       async salvarNota(tarefa_id, aluno_id, nota, comentario) { const i = notas.findIndex((n) => n.tarefa_id === tarefa_id && n.aluno_id === aluno_id); if (i >= 0) notas.splice(i, 1); if (nota !== null || comentario) notas.push({ tarefa_id, aluno_id, nota, comentario, lancada_em: new Date().toISOString() }); },
       async addMaterial(m) { materiais.push({ id: novoId(), aula: m.aula, turma_id: m.turma_id, titulo: m.titulo, caminho: m.file ? m.file.name : null, link: m.link || null, liberado_em: m.liberado_em }); },
+      async conferirProfessor() {},
       async removerMaterial(mat) { materiais.splice(materiais.findIndex((x) => x.id === mat.id), 1); },
       async salvarTarefa(t) { if (t.id) Object.assign(tarefas.find((x) => x.id === t.id), t); else tarefas.push({ ...t, id: novoId() }); },
       async removerTarefa(id) { tarefas.splice(tarefas.findIndex((x) => x.id === id), 1); },

@@ -626,7 +626,7 @@
       $('#muPastaOk').onclick = async () => {
         const envio = desenhar(); if (!envio.length) return;
         $('#muPastaOk').disabled = true;
-        const ok = await tentar(async () => { for (let i = 0; i < envio.length; i++) { const x = envio[i]; $('#muPastaInfo').textContent = `Enviando ${i + 1} de ${envio.length}…`;
+        const ok = await tentar(async () => { await API.conferirProfessor(); for (let i = 0; i < envio.length; i++) { const x = envio[i]; $('#muPastaInfo').textContent = `Enviando ${i + 1} de ${envio.length}…`;
           if (x.ja) { for (const velho of D.materiais.filter((m) => m.aula === x.aula && !m.turma_id && m.titulo === x.titulo)) await API.removerMaterial(velho); }
           await API.addMaterial({ aula: x.aula, turma_id: null, titulo: x.titulo, file: x.f, liberado_em: (noiteDa(x.aula) || {}).data || isoHoje() }); } });
         if (ok) atualizar(`${envio.length} materiais publicados nas aulas certas.`); else { $('#muPastaOk').disabled = false; $('#muPastaInfo').textContent = ''; }
