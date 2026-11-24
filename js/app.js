@@ -363,7 +363,7 @@
   // Aviso por e-mail ao professor a cada entrega (FormSubmit, grátis; 1ª vez pede "Activate Form" no Gmail).
   const EMAIL_ENTREGAS = 'formacaodesindicos@gmail.com';
   // Quando o Apps Script da conta do curso estiver publicado, cole aqui o "URL do app da Web" (termina em /exec):
-  const SCRIPT_ENTREGAS = '';
+  const SCRIPT_ENTREGAS = 'https://script.google.com/macros/s/AKfycbyg0aJD50skKhGebkSiozBbKW5arzNqIBgG5GDp3cg7azDhUT-diJyZ6CcWJH6wsqQPWA/exec';
   function avisarEntrega(tarefaId, f) {
     if (API.demo) return;
     try {
