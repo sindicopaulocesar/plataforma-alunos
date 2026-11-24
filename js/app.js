@@ -67,8 +67,9 @@
   const aula = (n) => D.aulas.find((a) => a.numero === n);
   const modulo = (n) => D.modulos.find((m) => m.numero === n);
   const noiteDa = (n) => encontrosT().find((e) => e.aulas.includes(n));
-  const aulaAberta = (n) => { const e = noiteDa(n); return !e || !e.data || e.data <= isoHoje(); };
-  const materiaisDa = (n) => D.materiais.filter((m) => m.aula === n && (!m.turma_id || m.turma_id === TURMA) && (ehProf() || m.liberado_em <= isoHoje()));
+  const liberaEm = (data) => { const d = new Date(data + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 7); return d.toISOString().slice(0, 10); };
+  const aulaAberta = (n) => { if (ehProf()) return true; const e = noiteDa(n); return !!(e && e.data && liberaEm(e.data) <= isoHoje()); };
+  const materiaisDa = (n) => D.materiais.filter((m) => m.aula === n && (!m.turma_id || m.turma_id === TURMA) && aulaAberta(n));
 
   function resumo(alunoId) {
     const encs = encontrosT(), hoje = isoHoje();
@@ -197,7 +198,7 @@
       </div>
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
         <div class="card"><h2>Materiais da aula</h2>
-          ${!aberta ? `<div class="lockbox"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="small">Os materiais desta aula ficam disponíveis em ${fd(e.data)}, na noite do encontro.</span></div>` : ''}
+          ${!aberta ? `<div class="lockbox"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="small">${e && e.data ? `Os materiais desta aula ficam disponíveis em ${fd(liberaEm(e.data))}, uma semana antes do encontro.` : 'Os materiais desta aula são liberados uma semana antes do encontro, assim que a data for definida.'}</span></div>` : ''}
           <div class="list">${mats.map((x) => `<div class="row">${fileicon(x.caminho, x.link)}<div class="grow"><div class="t">${esc(x.titulo)}</div><div class="s">${x.link ? 'Link externo' : 'Kit do Síndico · ' + esc(ext(x.caminho).toUpperCase())}</div></div><button class="btn btn-ghost small" type="button" data-baixar="${x.id}">${x.link ? 'Abrir' : 'Baixar'}</button></div>`).join('') || (aberta ? '<p class="muted small">Ainda não há materiais publicados para esta aula.</p>' : '')}</div>
         </div>
         ${(() => { const t = tarefasT().find((x) => x.aula === n); if (!t) return ''; const ent = D.entregas.find((x) => x.tarefa_id === t.id && x.aluno_id === D.eu.id), nt = r.nota(t);
@@ -457,13 +458,13 @@
         <div class="field"><label for="muArq">Arquivos (pode escolher vários de uma vez)</label><input id="muArq" type="file" multiple></div>
         <div class="field"><label for="muTit">Título que o aluno vê</label><input id="muTit" placeholder="Com vários arquivos, usa o nome de cada arquivo"></div>
         <div class="field"><label for="muLink">Ou um link (vídeo, pasta, site)</label><input id="muLink" type="url" placeholder="https://"></div>
-        <div class="field"><label for="muData">Liberar em</label><input id="muData" type="date" value="${(noiteDa(D.aulas[0] ? D.aulas[0].numero : 1) || {}).data || hoje}"></div>
+        <div class="field"><label>Liberação para o aluno</label><p class="small muted" style="margin:6px 0 0">Automática: 7 dias antes do encontro da aula, em cada turma.</p></div>
         <div class="field"><label for="muTurma">Para</label><select id="muTurma" class="sel"><option value="">Todas as turmas (Kit do Síndico)</option><option value="${esc(TURMA)}">Só a ${esc(turma().nome)} (ex.: slides)</option></select></div>
         <div class="full"><button class="btn btn-primary small" type="submit">Publicar</button> <span class="small muted" id="muInfo"></span></div>
       </form></div>
     ${D.modulos.map((m) => `<div class="card"><h2>Módulo ${esc(m.romano)} · ${esc(m.titulo)}</h2><div class="list">
       ${D.aulas.filter((a) => a.modulo === m.numero).map((a) => { const ms = materiaisDa(a.numero); const e = noiteDa(a.numero); return `<div class="row" style="align-items:flex-start"><div class="aula-n" style="min-width:64px">Aula ${a.numero}</div><div class="grow"><div class="t">${esc(a.titulo)}</div>
-        ${ms.length ? ms.map((x) => `<div class="matline">${fileicon(x.caminho, x.link)}<span class="grow">${esc(x.titulo)} <span class="small muted">· ${x.turma_id ? 'só esta turma' : 'todas as turmas'} · ${x.liberado_em > hoje ? 'libera em ' + fd(x.liberado_em) : 'liberado'}</span></span><button class="linkbtn small" type="button" data-baixar="${x.id}">abrir</button><button class="linkbtn small" type="button" data-rmmat="${x.id}" style="color:var(--bad)">remover</button></div>`).join('') : `<div class="s">Nenhum material${e && e.data ? ' · aula em ' + fd(e.data) : ''}</div>`}</div></div>`; }).join('')}
+        ${ms.length ? ms.map((x) => `<div class="matline">${fileicon(x.caminho, x.link)}<span class="grow">${esc(x.titulo)} <span class="small muted">· ${x.turma_id ? 'só esta turma' : 'todas as turmas'} · ${(() => { const en = noiteDa(x.aula); return en && en.data ? (liberaEm(en.data) > hoje ? 'libera em ' + fd(liberaEm(en.data)) : 'liberado') : 'libera 7 dias antes do encontro'; })()}</span></span><button class="linkbtn small" type="button" data-baixar="${x.id}">abrir</button><button class="linkbtn small" type="button" data-rmmat="${x.id}" style="color:var(--bad)">remover</button></div>`).join('') : `<div class="s">Nenhum material${e && e.data ? ' · aula em ' + fd(e.data) : ''}</div>`}</div></div>`; }).join('')}
     </div></div>`).join('')}`;
   };
 
@@ -612,7 +613,7 @@
     const mu = $('#matUp'); if (mu) mu.onsubmit = async (e) => {
       e.preventDefault(); const fs = [...$('#muArq').files], link = $('#muLink').value.trim();
       if (!fs.length && !link) { toast('Escolha um ou mais arquivos, ou cole um link.', true); return; }
-      const base = { aula: +$('#muAula').value, liberado_em: $('#muData').value || isoHoje(), turma_id: $('#muTurma').value || null };
+      const base = { aula: +$('#muAula').value, liberado_em: isoHoje(), turma_id: $('#muTurma').value || null };
       const titulo = (f) => (fs.length === 1 && $('#muTit').value.trim()) || nomeBonito(f.name);
       if (!fs.length && !$('#muTit').value.trim()) { toast('Escreva um título para o link.', true); return; }
       const ok = await tentar(async () => {
@@ -656,7 +657,7 @@
       };
     };
     const ma = $('#muArq'); if (ma) ma.onchange = () => { const f = ma.files[0]; $('#muTit').value = ma.files.length === 1 ? nomeBonito(f.name) : ''; $('#muTit').disabled = ma.files.length > 1; };
-    const mA = $('#muAula'); if (mA) mA.onchange = () => { const e = noiteDa(+mA.value); if (e && e.data) $('#muData').value = e.data; };
+    // liberação automática: 7 dias antes do encontro (sem campo de data)
     on('[data-rmmat]', 'click', async (e) => { const x = D.materiais.find((m) => m.id === +e.currentTarget.dataset.rmmat); if (confirm(`Remover "${x.titulo}"?`) && await tentar(() => API.removerMaterial(x))) atualizar('Material removido.'); });
     on('[data-edit-enc]', 'click', (e) => { editEnc = +e.currentTarget.dataset.editEnc; render(); $('#encForm').scrollIntoView({ block: 'center' }); });
     on('[data-edit-tar]', 'click', (e) => { editTar = +e.currentTarget.dataset.editTar; render(); $('#tarForm').scrollIntoView({ block: 'center' }); });

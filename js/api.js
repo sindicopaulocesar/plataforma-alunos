@@ -7,6 +7,7 @@
   function nomeSeguro(nome) {
     return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w.\-]+/g, '_').slice(-80);
   }
+  function menos7(data) { const d = new Date(data + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 7); return d.toISOString().slice(0, 10); }
   function novaChave() { const a = new Uint8Array(12); crypto.getRandomValues(a); return [...a].map((b) => b.toString(16).padStart(2, '0')).join(''); }
   function codDemo(chave, slot) { let h = 2166136261; for (const ch of chave + ':' + slot) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return String(h % 10000).padStart(4, '0'); }
   function erroAmigavel(e) {
@@ -228,7 +229,7 @@
       return {
         turmas: D2.turmas.filter((x) => x.id === t), modulos: D2.modulos, aulas: D2.aulas,
         encontros: D2.encontros.filter((x) => x.turma_id === t),
-        materiais: D2.materiais.filter((x) => (!x.turma_id || x.turma_id === t) && x.liberado_em <= hoje),
+        materiais: D2.materiais.filter((x) => (!x.turma_id || x.turma_id === t) && D2.encontros.some((e) => e.turma_id === t && e.data && e.aulas.includes(x.aula) && menos7(e.data) <= hoje)),
         tarefas: D2.tarefas.filter((x) => x.turma_id === t), avisos: D2.avisos.filter((x) => !x.turma_id || x.turma_id === t),
         entregas: D2.entregas.filter((x) => x.aluno_id === eu.id), notas: D2.notas.filter((x) => x.aluno_id === eu.id),
         presencas: D2.presencas.filter((x) => x.aluno_id === eu.id), concluidas: D2.concluidas.filter((x) => x.aluno_id === eu.id),
