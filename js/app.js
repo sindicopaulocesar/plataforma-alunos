@@ -358,6 +358,28 @@
   };
 
   let filtroAluno = '';
+  const URL_ALUNO = 'https://aluno.formacaodesindicos.com.br/entrar.html';
+  const boasVindas = (nome, email, t) => {
+    const cid = cidadeDe(t.id).replace(/^d[oe] /, ''), parc = parceiroDe(t);
+    const su = `Bem-vindo(a) à Formação de Síndicos Profissionais · Turma ${cid} 2027`;
+    const body = [`Olá${nome ? ', ' + nome.split(' ')[0] : ''}!`, '',
+      `Sua matrícula na Formação de Síndicos Profissionais · Turma ${cid} 2027${parc ? ', em parceria com a ' + parc : ''}, está confirmada.`, '',
+      'COMO ENTRAR NA PLATAFORMA DO ALUNO',
+      `1. Acesse ${URL_ALUNO}?turma=${t.id}`,
+      `2. No primeiro acesso, digite ${email ? 'este e-mail (' + email + ')' : 'o seu e-mail'} e clique em "Criar minha senha".`,
+      '3. Nas próximas vezes, entre com o seu e-mail e a senha que você criou.', '',
+      'COMO O CURSO FUNCIONA',
+      '• 80 horas, 6 módulos e 24 aulas, com certificado de extensão pela ESIC.',
+      `• Encontros: ${t.horario && t.inicio ? t.horario + ', a partir de ' + t.inicio.split('-').reverse().join('/') : 'datas a confirmar'}. A agenda completa fica na plataforma.`,
+      '• Os materiais de cada aula são liberados uma semana antes do encontro.',
+      '• A presença é marcada pelo celular, lendo o QR Code mostrado no encontro.',
+      '• As atividades e o Projeto Integrador são enviados pela própria plataforma. Para receber o certificado: média 7,0 e presença mínima de 75%.', '',
+      'Dúvidas: WhatsApp (41) 99929-8991 ou formacaodesindicos@gmail.com.', '',
+      'Um abraço,', 'Prof. Paulo Cesar', 'Coordenação · Formação de Síndicos Profissionais'].join('\n');
+    return { su, body };
+  };
+  const gmail = ({ to = '', bcc = '', su, body }) => `https://mail.google.com/mail/?view=cm&fs=1${to ? '&to=' + encodeURIComponent(to) : ''}${bcc ? '&bcc=' + encodeURIComponent(bcc) : ''}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`;
+  const linkBV = (m) => gmail({ to: m.email, ...boasVindas(m.nome, m.email, turma()) });
   V['p-alunos'] = () => {
     const als = alunosT();
     const mat = (D.matriculas || []).filter((m) => m.turma_id === TURMA && m.papel === 'aluno');
@@ -370,8 +392,9 @@
       <div class="field full"><label for="mLote">Ou cole vários de uma vez (um por linha: Nome; e-mail)</label><textarea id="mLote" class="ta" rows="3" placeholder="Maria Souza; maria@email.com&#10;João Lima; joao@email.com"></textarea></div>
       <div><button class="btn btn-primary small" type="submit">Matricular na ${esc(turma().nome)}</button></div></form>
     </div>
-    ${pend.length ? `<div class="card"><div class="cardhead"><h2>Ainda não criaram a senha</h2>${pill(pend.length, 'warn')}</div><p class="small muted">Mande o endereço da plataforma para eles. No primeiro acesso, basta digitar o e-mail e criar a senha.</p>
-      <div class="list">${pend.map((m) => `<div class="row"><span class="mini">${esc(ini(m.nome))}</span><div class="grow"><div class="t">${esc(m.nome)}</div><div class="s">${esc(m.email)}</div></div><button class="linkbtn small" type="button" data-desmat="${esc(m.email)}">Remover</button></div>`).join('')}</div></div>` : ''}
+    ${pend.length ? `<div class="card"><div class="cardhead"><h2>Ainda não criaram a senha</h2>${pill(pend.length, 'warn')}</div><p class="small muted">Clique em "Enviar boas-vindas": abre o seu Gmail com o e-mail pronto, com o link e as instruções. Confira e clique em Enviar.</p>
+      <div class="list">${pend.map((m) => `<div class="row"><span class="mini">${esc(ini(m.nome))}</span><div class="grow"><div class="t">${esc(m.nome)}</div><div class="s">${esc(m.email)}</div></div><button class="linkbtn small" type="button" data-desmat="${esc(m.email)}">Remover</button><a class="btn btn-ghost small" target="_blank" rel="noopener" href="${esc(linkBV(m))}">Enviar boas-vindas</a></div>`).join('')}</div>
+      ${pend.length > 1 ? `<a class="btn btn-primary small" style="align-self:flex-start;margin-top:10px" target="_blank" rel="noopener" href="${esc(gmail({ bcc: pend.map((m) => m.email).join(','), ...boasVindas('', '', turma()) }))}">Enviar boas-vindas para todos (${pend.length})</a><p class="small muted">Os e-mails vão em cópia oculta: um aluno não vê o endereço do outro.</p>` : ''}</div>` : ''}
     <div class="card"><div class="toolbar"><h2>Turma (${als.length})</h2><input class="search" id="busca" placeholder="Buscar por nome ou e-mail" value="${esc(filtroAluno)}"></div>
       <div class="tbl-wrap"><table><thead><tr><th>Aluno</th><th class="n">Progresso</th><th class="n">Frequência</th><th class="n">Nota</th><th class="n">Pendências</th></tr></thead><tbody>
       ${lista.map((a) => { const r = resumo(a.id); return `<tr class="go" data-href="#p-aluno-${esc(a.id)}"><td><div class="who-cell"><span class="mini">${esc(ini(a.nome))}</span><div><b>${esc(a.nome)}</b><div class="small muted">${esc(a.email)}</div></div></div></td><td class="n">${Math.round(r.progresso * 100)}%</td><td class="n" ${r.freq != null && r.freq < 0.75 ? 'style="color:var(--bad);font-weight:700"' : ''}>${r.freq == null ? '—' : Math.round(r.freq * 100) + '%'}</td><td class="n" ${r.final != null && r.final < 7 ? 'style="color:var(--bad);font-weight:700"' : ''}>${n1(r.final)}</td><td class="n">${r.pendentes.filter((t) => t.prazo && t.prazo < isoHoje()).length || ''}</td></tr>`; }).join('') || '<tr><td colspan="5" class="muted">Nenhum aluno com senha criada ainda.</td></tr>'}
@@ -588,7 +611,7 @@
       if (lote) itens = lote.split('\n').map((l) => l.split(/[;\t,]/).map((s) => s.trim())).filter((p) => p.length >= 2 && p[1].includes('@')).map(([nome, email]) => ({ nome, email }));
       if ($('#mNome').value.trim() && $('#mEmail').value.trim()) itens.push({ nome: $('#mNome').value.trim(), email: $('#mEmail').value.trim() });
       if (!itens.length) { toast('Preencha nome e e-mail.', true); return; }
-      if (await tentar(async () => { for (const it of itens) await API.matricular({ ...it, turma_id: TURMA, papel: 'aluno' }); })) atualizar(itens.length > 1 ? `${itens.length} alunos matriculados.` : 'Aluno matriculado.');
+      if (await tentar(async () => { for (const it of itens) await API.matricular({ ...it, turma_id: TURMA, papel: 'aluno' }); })) atualizar(itens.length > 1 ? `${itens.length} alunos matriculados. Agora clique em "Enviar boas-vindas".` : 'Aluno matriculado. Agora clique em "Enviar boas-vindas".');
     };
     $$('#matForm input[required]').forEach((i) => { i.required = false; });
     on('[data-desmat]', 'click', async (e) => { if (confirm('Remover esta matrícula?') && await tentar(() => API.removerMatricula(e.currentTarget.dataset.desmat))) atualizar('Matrícula removida.'); });
