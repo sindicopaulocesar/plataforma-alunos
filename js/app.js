@@ -15,6 +15,7 @@
   const n1 = (v) => v == null || isNaN(v) ? '—' : v.toFixed(1).replace('.', ',');
   const media = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
   const ini = (n) => (n || '?').replace(/^(Prof\.|Dr\.|Dra\.)\s*/, '').split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+  const nomeBonito = (n) => n.replace(/\.[^.]+$/, '').replace(/^\d+\s*[-–.]\s*/, '').replace(/_/g, ' ').trim();
   const ext = (c) => ((c || '').split('.').pop() || '').toLowerCase().slice(0, 4);
   const PESOS = { formativa: 0.3, pi: 0.5, pratica: 0.2 };
   const TIPOS = { formativa: 'Avaliação formativa', pi_parte: 'Projeto Integrador · parte', pi_final: 'Projeto Integrador · versão final', pratica: 'Prática / simulação' };
@@ -427,11 +428,11 @@
     <div class="card"><h2>Publicar material</h2>
       <form class="cform" id="matUp">
         <div class="field"><label for="muAula">Aula</label><select id="muAula" class="sel">${D.aulas.map((a) => `<option value="${a.numero}">Aula ${a.numero} · ${esc(a.titulo)}</option>`).join('')}</select></div>
-        <div class="field"><label for="muTit">Título que o aluno vê</label><input id="muTit" required placeholder="Ex.: Checklist de transição e vistoria"></div>
-        <div class="field"><label for="muArq">Arquivo</label><input id="muArq" type="file"></div>
+        <div class="field"><label for="muArq">Arquivos (pode escolher vários de uma vez)</label><input id="muArq" type="file" multiple></div>
+        <div class="field"><label for="muTit">Título que o aluno vê</label><input id="muTit" placeholder="Com vários arquivos, usa o nome de cada arquivo"></div>
         <div class="field"><label for="muLink">Ou um link (vídeo, pasta, site)</label><input id="muLink" type="url" placeholder="https://"></div>
-        <div class="field"><label for="muData">Liberar em</label><input id="muData" type="date" value="${hoje}"></div>
-        <div class="field"><label for="muTurma">Para</label><select id="muTurma" class="sel"><option value="${esc(TURMA)}">Só a ${esc(turma().nome)}</option><option value="">Todas as turmas</option></select></div>
+        <div class="field"><label for="muData">Liberar em</label><input id="muData" type="date" value="${(noiteDa(D.aulas[0] ? D.aulas[0].numero : 1) || {}).data || hoje}"></div>
+        <div class="field"><label for="muTurma">Para</label><select id="muTurma" class="sel"><option value="">Todas as turmas (Kit do Síndico)</option><option value="${esc(TURMA)}">Só a ${esc(turma().nome)} (ex.: slides)</option></select></div>
         <div class="full"><button class="btn btn-primary small" type="submit">Publicar</button> <span class="small muted" id="muInfo"></span></div>
       </form></div>
     ${D.modulos.map((m) => `<div class="card"><h2>Módulo ${esc(m.romano)} · ${esc(m.titulo)}</h2><div class="list">
@@ -577,12 +578,19 @@
     });
     on('.nota-in', 'keydown', (e) => { if (e.key === 'Enter') e.currentTarget.closest('tr').querySelector('[data-salvar-nota]').click(); });
     const mu = $('#matUp'); if (mu) mu.onsubmit = async (e) => {
-      e.preventDefault(); const f = $('#muArq').files[0], link = $('#muLink').value.trim();
-      if (!f && !link) { toast('Escolha um arquivo ou cole um link.', true); return; }
-      $('#muInfo').textContent = 'Enviando…';
-      if (await tentar(() => API.addMaterial({ aula: +$('#muAula').value, titulo: $('#muTit').value.trim(), file: f, link, liberado_em: $('#muData').value || isoHoje(), turma_id: $('#muTurma').value || null }))) atualizar('Material publicado.'); else $('#muInfo').textContent = '';
+      e.preventDefault(); const fs = [...$('#muArq').files], link = $('#muLink').value.trim();
+      if (!fs.length && !link) { toast('Escolha um ou mais arquivos, ou cole um link.', true); return; }
+      const base = { aula: +$('#muAula').value, liberado_em: $('#muData').value || isoHoje(), turma_id: $('#muTurma').value || null };
+      const titulo = (f) => (fs.length === 1 && $('#muTit').value.trim()) || nomeBonito(f.name);
+      if (!fs.length && !$('#muTit').value.trim()) { toast('Escreva um título para o link.', true); return; }
+      const ok = await tentar(async () => {
+        if (link) await API.addMaterial({ ...base, titulo: $('#muTit').value.trim(), link });
+        for (let i = 0; i < fs.length; i++) { $('#muInfo').textContent = `Enviando ${i + 1} de ${fs.length}…`; await API.addMaterial({ ...base, titulo: titulo(fs[i]), file: fs[i] }); }
+      });
+      if (ok) atualizar(fs.length > 1 ? `${fs.length} materiais publicados.` : 'Material publicado.'); else $('#muInfo').textContent = '';
     };
-    const ma = $('#muArq'); if (ma) ma.onchange = () => { const f = ma.files[0]; if (f && !$('#muTit').value) $('#muTit').value = f.name.replace(/\.[^.]+$/, '').replace(/^\d+\s*-\s*/, ''); };
+    const ma = $('#muArq'); if (ma) ma.onchange = () => { const f = ma.files[0]; $('#muTit').value = ma.files.length === 1 ? nomeBonito(f.name) : ''; $('#muTit').disabled = ma.files.length > 1; };
+    const mA = $('#muAula'); if (mA) mA.onchange = () => { const e = noiteDa(+mA.value); if (e && e.data) $('#muData').value = e.data; };
     on('[data-rmmat]', 'click', async (e) => { const x = D.materiais.find((m) => m.id === +e.currentTarget.dataset.rmmat); if (confirm(`Remover "${x.titulo}"?`) && await tentar(() => API.removerMaterial(x))) atualizar('Material removido.'); });
     on('[data-edit-enc]', 'click', (e) => { editEnc = +e.currentTarget.dataset.editEnc; render(); $('#encForm').scrollIntoView({ block: 'center' }); });
     on('[data-edit-tar]', 'click', (e) => { editTar = +e.currentTarget.dataset.editTar; render(); $('#tarForm').scrollIntoView({ block: 'center' }); });
