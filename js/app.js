@@ -346,7 +346,7 @@
       <div class="card stat"><span class="eyebrow">Alunos</span><span class="big num">${als.length}</span><span class="small muted">${mat.length} matriculados${semSenha ? ` · ${semSenha} ainda sem senha` : ''}</span></div>
       <div class="card stat"><span class="eyebrow">Frequência média</span><span class="big num">${fMed == null ? '—' : Math.round(fMed * 100) + '%'}</span>${bar(fMed)}</div>
       <div class="card stat"><span class="eyebrow">Nota média</span><span class="big num">${n1(nMed)}</span>${bar(nMed == null ? 0 : nMed / 10, true)}</div>
-      <div class="card stat"><span class="eyebrow">Para corrigir</span><span class="big num">${corrigir.length}</span><a class="linkbtn small" href="#p-notas">Abrir correções</a></div>
+      <div class="card stat"><span class="eyebrow">Para corrigir</span><span class="big num">${corrigir.length}</span><a class="linkbtn small" href="#p-notas" data-ir-correcoes>Abrir correções</a></div>
     </div>
     <div class="split">
       <div class="card"><div class="cardhead"><h2>Atenção</h2>${pill(risco.length + ' aluno' + (risco.length === 1 ? '' : 's'), risco.length ? 'warn' : 'ok')}</div>
@@ -360,6 +360,20 @@
 
   let filtroAluno = '';
   const URL_ALUNO = 'https://aluno.formacaodesindicos.com.br/entrar.html';
+  // Aviso por e-mail ao professor a cada entrega (FormSubmit, grátis; 1ª vez pede "Activate Form" no Gmail).
+  const EMAIL_ENTREGAS = 'formacaodesindicos@gmail.com';
+  function avisarEntrega(tarefaId, f) {
+    if (API.demo) return;
+    try {
+      const tf = D.tarefas.find((x) => x.id === tarefaId) || {}; const t = turma();
+      const quando = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      fetch('https://formsubmit.co/ajax/' + EMAIL_ENTREGAS, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({
+        _subject: `Nova entrega: ${tf.titulo || 'atividade'} · ${D.eu.nome} (${t.nome || ''})`, _template: 'table', _captcha: 'false',
+        Aluno: D.eu.nome, 'E-mail do aluno': D.eu.email || '', Turma: t.nome || '', Atividade: tf.titulo || '', Arquivo: f.name, 'Enviado em': quando,
+        'Para baixar e corrigir': URL_ALUNO + ' → entre como professor → menu Notas e entregas → clique no nome do arquivo na linha do aluno',
+      }) }).catch(() => {});
+    } catch (_) { /* o aviso nunca atrapalha a entrega */ }
+  }
   const boasVindas = (nome, email, t) => {
     const cid = cidadeDe(t.id).replace(/^d[oe] /, ''), parc = parceiroDe(t);
     const su = `Bem-vindo(a) à Formação de Síndicos Profissionais · Turma ${cid} 2027`;
@@ -461,10 +475,13 @@
   let tarSel = null;
   V['p-notas'] = () => {
     const tars = tarefasT();
-    if (!tars.some((t) => t.id === tarSel)) { const hoje = isoHoje(); const c = tars.filter((t) => t.prazo && t.prazo <= hoje); tarSel = (c[c.length - 1] || tars[0] || {}).id; }
-    const t = tars.find((x) => x.id === tarSel), als = alunosT();
     const conta = (tt) => D.entregas.filter((e) => e.tarefa_id === tt.id && !D.notas.some((n) => n.tarefa_id === tt.id && n.aluno_id === e.aluno_id && n.nota != null)).length;
+    const pendT = tars.filter((x) => conta(x));
+    if (!tars.some((t) => t.id === tarSel)) { const hoje = isoHoje(); const c = tars.filter((t) => t.prazo && t.prazo <= hoje); tarSel = (pendT[0] || c[c.length - 1] || tars[0] || {}).id; }
+    const t = tars.find((x) => x.id === tarSel), als = alunosT();
+    const aguardando = pendT.length ? `<div class="card" style="border-left:4px solid var(--green,#2f7a55)"><h2>Entregas aguardando correção</h2><div class="list">${pendT.map((x) => `<div class="row"><span><b>${esc(x.titulo)}</b> · ${conta(x)} ${conta(x) === 1 ? 'arquivo' : 'arquivos'} para corrigir</span>${x.id === tarSel ? '<span class="small muted">aberta abaixo</span>' : `<button class="btn btn-primary small" type="button" data-abrir-tar="${x.id}">Corrigir</button>`}</div>`).join('')}</div></div>` : '';
     return `${cabecalho('Coordenação', 'Notas e entregas', 'Escolha a avaliação, abra o arquivo de cada aluno e lance a nota de 0 a 10 com a devolutiva. Cada linha salva sozinha.')}
+    ${aguardando}
     ${t ? `<div class="card"><div class="field"><label for="tar" class="small">Avaliação</label><select id="tar" class="sel">${tars.map((x) => `<option value="${x.id}" ${x.id === t.id ? 'selected' : ''}>${esc(x.titulo)}${conta(x) ? ` · ${conta(x)} para corrigir` : ''}</option>`).join('')}</select></div>
       <p class="small muted">${TIPOS[t.tipo]}${t.prazo ? ' · prazo ' + fd(t.prazo) : ''}${t.aceita_envio ? '' : ' · feita em sala, sem envio de arquivo'}</p>
       <div class="tbl-wrap"><table class="notas-tbl"><thead><tr><th>Aluno</th>${t.aceita_envio ? '<th>Entrega</th>' : ''}<th style="width:96px">Nota</th><th>Devolutiva</th><th></th></tr></thead><tbody>
@@ -600,10 +617,10 @@
     on('[data-mod]', 'click', (e) => { const n = +e.currentTarget.dataset.mod; abertos.has(n) ? abertos.delete(n) : abertos.add(n); const y = scrollY; render(); scrollTo(0, y); });
     on('[data-baixar]', 'click', (e) => { const x = D.materiais.find((m) => m.id === +e.currentTarget.dataset.baixar); if (x.link) window.open(x.link, '_blank', 'noopener'); else baixar('materiais', x.caminho); });
     const c = $('#concluir'); if (c) c.onclick = async () => { const n = +location.hash.split('-')[1]; if (await tentar(() => API.marcarConcluida(n, c.dataset.on === '1'))) atualizar(c.dataset.on === '1' ? 'Aula marcada como concluída.' : 'Aula desmarcada.'); };
-    on('[data-upload]', 'change', async (e) => { const f = e.target.files[0]; if (!f) return; if (f.size > 20 * 1048576) { toast('O arquivo passa de 20 MB. Tente um PDF menor.', true); return; } const lab = e.target.parentElement; lab.textContent = 'Enviando…'; if (await tentar(() => API.enviarEntrega(+e.target.dataset.upload, f))) atualizar('Arquivo enviado. O professor vai corrigir e a nota aparece aqui.'); else render(); });
+    on('[data-upload]', 'change', async (e) => { const f = e.target.files[0]; if (!f) return; if (f.size > 20 * 1048576) { toast('O arquivo passa de 20 MB. Tente um PDF menor.', true); return; } const lab = e.target.parentElement; lab.textContent = 'Enviando…'; if (await tentar(() => API.enviarEntrega(+e.target.dataset.upload, f))) { avisarEntrega(+e.target.dataset.upload, f); atualizar('Arquivo enviado. O professor vai corrigir e a nota aparece aqui.'); } else render(); });
     on('[data-drop]', 'dragover', (e) => { e.preventDefault(); e.currentTarget.classList.add('over'); });
     on('[data-drop]', 'dragleave', (e) => e.currentTarget.classList.remove('over'));
-    on('[data-drop]', 'drop', async (e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && await tentar(() => API.enviarEntrega(+e.currentTarget.dataset.drop, f))) atualizar('Arquivo enviado.'); });
+    on('[data-drop]', 'drop', async (e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; const id = +e.currentTarget.dataset.drop; if (f && await tentar(() => API.enviarEntrega(id, f))) { avisarEntrega(id, f); atualizar('Arquivo enviado.'); } });
     on('[data-entrega]', 'click', (e) => { const x = D.entregas.find((y) => y.tarefa_id === +e.currentTarget.dataset.entrega && y.aluno_id === D.eu.id); baixar('entregas', x.caminho, x.nome_arquivo); });
     on('[data-entrega-de]', 'click', (e) => { const [t, a] = e.currentTarget.dataset.entregaDe.split('|'); const x = D.entregas.find((y) => y.tarefa_id === +t && y.aluno_id === a); baixar('entregas', x.caminho, x.nome_arquivo); });
     const bc = $('#baixarCert'); if (bc) bc.onclick = () => { const x = D.certificados.find((c2) => c2.aluno_id === D.eu.id); baixar('certificados', x.caminho, 'Certificado ' + D.eu.nome + '.pdf'); };
@@ -638,6 +655,8 @@
     const ac = $('#atuCh'); if (ac) ac.onclick = () => { chamada = null; atualizar('Lista atualizada.'); };
     const sc = $('#salvarCh'); if (sc) sc.onclick = async () => { if (await tentar(() => API.salvarPresencas(encSel, chamada))) { chamada = null; atualizar('Chamada salva.'); } };
     const ta = $('#tar'); if (ta) ta.onchange = () => { tarSel = +ta.value; render(); };
+    on('[data-ir-correcoes]', 'click', () => { tarSel = null; });
+    on('[data-abrir-tar]', 'click', (e) => { tarSel = +e.currentTarget.dataset.abrirTar; render(); });
     on('[data-salvar-nota]', 'click', async (e) => {
       const tr = e.currentTarget.closest('tr'), v = tr.querySelector('.nota-in').value.replace(',', '.'), com = tr.querySelector('.coment').value.trim();
       const nota = v === '' ? null : +v; if (nota != null && (isNaN(nota) || nota < 0 || nota > 10)) { toast('A nota vai de 0 a 10.', true); return; }
