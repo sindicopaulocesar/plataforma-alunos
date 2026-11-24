@@ -44,7 +44,6 @@ foreach t in array array['sp-2027','cwb-2027','poa-2027'] loop
       select t, titulo, descricao, tipo, modulo, aula, null, aceita_envio, ordem from public.tarefas where turma_id = 'rj-2027';
     insert into public.avisos (turma_id, titulo, texto)
       values (t, 'Bem-vindo à Formação de Síndicos Profissionais', 'As datas desta turma ainda serão confirmadas. Assim que estiverem definidas, a agenda aparece aqui.');
-    update public.turmas set horario = coalesce(horario, 'Quartas e quintas, 18h30 às 22h') where id = t;
   end if;
 end loop;
 end $$;

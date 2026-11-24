@@ -143,7 +143,7 @@
       </div>
       ${prox ? `<div class="date"><b class="num">${dias(prox.data)}</b><span>${dias(prox.data) === 1 ? 'dia' : 'dias'}</span></div>` : ''}
     </section>
-    <div class="card presencial"><b>Curso presencial</b><span>${esc(t.horario || 'Quartas e quintas, 18h30 às 22h')}</span><span>Local: ${esc(t.local || 'a confirmar')}</span><span class="small muted" style="flex-basis:100%">Em sala: troca de informações, trabalhos em grupo, dinâmicas de grupo e análise de estudos de caso.</span></div>
+    <div class="card presencial"><b>Curso presencial</b><span>${esc(t.horario || 'Dias e horário a confirmar')}</span><span>Local: ${esc(t.local || 'a confirmar')}</span><span class="small muted" style="flex-basis:100%">Em sala: troca de informações, trabalhos em grupo, dinâmicas de grupo e análise de estudos de caso.</span></div>
     ${presencaHoje()}
     <div class="grid g3">
       <div class="card stat"><span class="eyebrow">Progresso no curso</span><span class="big num">${Math.round(r.progresso * 100)}%</span>${bar(r.progresso)}<span class="small muted">${r.concl.size} de ${D.aulas.length} aulas concluídas</span></div>
@@ -372,9 +372,10 @@
       'CURSO PRESENCIAL',
       '• A turma é presencial, com troca de informações entre os colegas, trabalhos em grupo, dinâmicas de grupo e análise de estudos de caso.',
       `• Local: ${t.local || 'a confirmar'}`,
-      `• Dias e horário: ${t.horario || 'quartas e quintas, das 18h30 às 22h'}${t.inicio ? ', a partir de ' + t.inicio.split('-').reverse().join('/') : ' (datas a confirmar)'}`, '',
+      `• Dias e horário: ${t.horario || 'a confirmar'}${t.inicio ? ', a partir de ' + t.inicio.split('-').reverse().join('/') : ' (datas a confirmar)'}`, '',
       'COMO O CURSO FUNCIONA',
-      '• 80 horas, 6 módulos e 24 aulas, com certificado de extensão emitido por instituição credenciada pelo MEC.',
+      '• Curso 100% presencial, com certificado de extensão universitária emitido por instituição credenciada pelo MEC.',
+      '• 80 horas, 6 módulos e 24 aulas.',
       '• A agenda completa dos encontros fica na plataforma.',
       '• Os materiais de cada aula são liberados uma semana antes do encontro.',
       '• A presença é marcada pelo celular, lendo o QR Code mostrado no encontro.',
@@ -503,7 +504,7 @@
     return `${cabecalho('Coordenação', 'Agenda e tarefas', 'Ajuste as datas dos encontros (por exemplo, os virtuais) e as avaliações que compõem a nota.')}
     <div class="card"><h2>Curso presencial · local e horário</h2><p class="small muted">Aparece para o aluno na tela Início, na Agenda e no e-mail de boas-vindas.</p>
       <form class="cform" id="turmaForm"><div class="field full"><label for="tLocal">Local dos encontros (endereço completo)</label><input id="tLocal" value="${esc(turma().local || '')}" placeholder="Ex.: Av. Rio Branco, 100, sala 501, Centro, Rio de Janeiro"></div>
-      <div class="field"><label for="tHorario">Dias e horário</label><input id="tHorario" value="${esc(turma().horario || 'Quartas e quintas, 18h30 às 22h')}"></div>
+      <div class="field"><label for="tHorario">Dias e horário</label><input id="tHorario" value="${esc(turma().horario || '')}" placeholder="Ex.: Quartas e quintas, 18h30 às 22h"></div>
       <div><button class="btn btn-primary small" type="submit">Salvar local e horário</button></div></form></div>
     <div class="card"><h2>${ee.id ? 'Editar encontro' : 'Novo encontro'}</h2>
       <form class="cform" id="encForm" data-id="${ee.id || ''}">
