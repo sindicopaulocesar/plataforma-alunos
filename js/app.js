@@ -143,7 +143,7 @@
       </div>
       ${prox ? `<div class="date"><b class="num">${dias(prox.data)}</b><span>${dias(prox.data) === 1 ? 'dia' : 'dias'}</span></div>` : ''}
     </section>
-    <div class="card presencial"><b>Curso presencial</b><span>${esc(t.horario || 'Quartas e quintas, 18h30 às 22h')}</span><span>Local: ${esc(t.local || 'a confirmar')}</span></div>
+    <div class="card presencial"><b>Curso presencial</b><span>${esc(t.horario || 'Quartas e quintas, 18h30 às 22h')}</span><span>Local: ${esc(t.local || 'a confirmar')}</span><span class="small muted" style="flex-basis:100%">Em sala: troca de informações, trabalhos em grupo, dinâmicas de grupo e análise de estudos de caso.</span></div>
     ${presencaHoje()}
     <div class="grid g3">
       <div class="card stat"><span class="eyebrow">Progresso no curso</span><span class="big num">${Math.round(r.progresso * 100)}%</span>${bar(r.progresso)}<span class="small muted">${r.concl.size} de ${D.aulas.length} aulas concluídas</span></div>
@@ -370,6 +370,7 @@
       `2. No primeiro acesso, digite ${email ? 'este e-mail (' + email + ')' : 'o seu e-mail'} e clique em "Criar minha senha".`,
       '3. Nas próximas vezes, entre com o seu e-mail e a senha que você criou.', '',
       'CURSO PRESENCIAL',
+      '• A turma é presencial, com troca de informações entre os colegas, trabalhos em grupo, dinâmicas de grupo e análise de estudos de caso.',
       `• Local: ${t.local || 'a confirmar'}`,
       `• Dias e horário: ${t.horario || 'quartas e quintas, das 18h30 às 22h'}${t.inicio ? ', a partir de ' + t.inicio.split('-').reverse().join('/') : ' (datas a confirmar)'}`, '',
       'COMO O CURSO FUNCIONA',
