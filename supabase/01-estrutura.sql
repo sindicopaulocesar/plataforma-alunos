@@ -83,6 +83,7 @@ create table if not exists public.tarefas (
   descricao    text,
   tipo         text not null check (tipo in ('formativa','pi_parte','pi_final','pratica')),
   modulo       int references public.modulos(numero),
+  aula         int references public.aulas(numero),
   prazo        date,
   aceita_envio boolean not null default true,
   ordem        int not null default 0

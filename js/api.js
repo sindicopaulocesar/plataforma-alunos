@@ -150,6 +150,8 @@
     C.partes.forEach((t, i) => tarefas.push({ id: novoId(), turma_id: 'rj-2027', titulo: i < 5 ? `Projeto Integrador · Parte ${i + 1}` : 'Projeto Integrador · Versão final', descricao: i < 5 ? t : 'Plano de Gestão de 12 meses consolidado, com IA e tecnologia, LGPD e proposta comercial.', tipo: i < 5 ? 'pi_parte' : 'pi_final', modulo: i + 1, prazo: C.prazos[i], aceita_envio: true, ordem: ++ordem }));
     tarefas.push({ id: novoId(), turma_id: 'rj-2027', titulo: 'Simulação de assembleia', descricao: 'Participação e desempenho na simulação do último encontro.', tipo: 'pratica', modulo: 6, prazo: '2027-06-03', aceita_envio: false, ordem: ++ordem });
 
+    encontros.forEach((e) => e.data && e.aulas.forEach((n) => { const d = new Date(e.data + 'T12:00:00'); d.setDate(d.getDate() + 7); const a = C.aulas.find((x) => x.numero === n); tarefas.push({ id: novoId(), turma_id: 'rj-2027', titulo: `Atividade da Aula ${n}`, descricao: `Atividade prática da aula “${a.titulo}”. Faça a atividade proposta em sala e envie o arquivo aqui até o prazo.`, tipo: 'pratica', modulo: a.modulo, aula: n, prazo: d.toISOString().slice(0, 10), aceita_envio: true, ordem: 100 + n }); }));
+
     // materiais: as ferramentas do Kit de cada aula, liberadas na noite da aula
     const materiais = [];
     const noiteDaAula = {}; encontros.forEach((e) => e.aulas.forEach((a) => { noiteDaAula[a] = e.data; }));
