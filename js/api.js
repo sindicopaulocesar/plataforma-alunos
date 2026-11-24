@@ -164,8 +164,8 @@
 
     const turmas = [
       { id: 'rj-2027', cidade: 'Rio de Janeiro', parceiro: 'Centrimóveis', nome: 'Turma Rio de Janeiro 2027', inicio: '2027-02-24', formatura: '2027-06-15', horario: 'Quartas e quintas, 18h30 às 22h', local: 'A confirmar (exemplo: Av. Rio Branco, 100, Centro, Rio de Janeiro)', ativa: true },
-      { id: 'sp-2027', cidade: 'São Paulo', parceiro: 'Condo Hub', nome: 'Turma São Paulo 2027', inicio: null, formatura: null, horario: null, ativa: true },
-      { id: 'cwb-2027', cidade: 'Curitiba', parceiro: 'A definir', nome: 'Turma Curitiba 2027', inicio: null, formatura: null, horario: null, ativa: true },
+      { id: 'sp-2027', cidade: 'São Paulo', parceiro: 'Condohuby', nome: 'Turma São Paulo 2027', inicio: null, formatura: null, horario: null, ativa: true },
+      { id: 'cwb-2027', cidade: 'Curitiba', parceiro: 'Finocrédito', nome: 'Turma Curitiba 2027', inicio: null, formatura: null, horario: null, ativa: true },
       { id: 'poa-2027', cidade: 'Porto Alegre', parceiro: 'A definir', nome: 'Turma Porto Alegre 2027', inicio: null, formatura: null, horario: null, ativa: true }
     ];
     let nid = 1000; const novoId = () => ++nid;

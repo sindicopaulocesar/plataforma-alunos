@@ -759,7 +759,7 @@
 
   // ---------- entrada ----------
   let modoEntrada = 'entrar';
-  const CIDADES = { 'rj-2027': 'Rio de Janeiro · Centrimóveis', 'sp-2027': 'São Paulo · Condo Hub', 'cwb-2027': 'Curitiba', 'poa-2027': 'Porto Alegre' };
+  const CIDADES = { 'rj-2027': 'Rio de Janeiro · Centrimóveis', 'sp-2027': 'São Paulo · Condohuby', 'cwb-2027': 'Curitiba · Finocrédito', 'poa-2027': 'Porto Alegre' };
   const cidadeDe = (id) => { const c = (CIDADES[id] || id || '').split(' · ')[0]; return (/^Rio /.test(c) ? 'do ' : 'de ') + c; };
   function telaEntrada() {
     $('#app').hidden = true; $('#login').hidden = false;

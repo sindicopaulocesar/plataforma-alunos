@@ -39,8 +39,8 @@ on conflict (numero) do update set modulo=excluded.modulo, titulo=excluded.titul
 
 insert into public.turmas (id, cidade, parceiro, nome, inicio, formatura, horario) values
   ('rj-2027','Rio de Janeiro','Centrimóveis','Turma Rio de Janeiro 2027','2027-02-24','2027-06-15','Quartas e quintas, 18h30 às 22h'),
-  ('sp-2027','São Paulo','Condo Hub','Turma São Paulo 2027',null,null,null),
-  ('cwb-2027','Curitiba','A definir','Turma Curitiba 2027',null,null,null),
+  ('sp-2027','São Paulo','Condohuby','Turma São Paulo 2027',null,null,null),
+  ('cwb-2027','Curitiba','Finocrédito','Turma Curitiba 2027',null,null,null),
   ('poa-2027','Porto Alegre','A definir','Turma Porto Alegre 2027',null,null,null)
 on conflict (id) do nothing;
 
